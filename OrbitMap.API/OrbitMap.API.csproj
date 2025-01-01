@@ -24,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\OrbitMap.Domain\OrbitMap.Domain.csproj" />
-      <ProjectReference Include="..\..\OrbitMap.Repository\OrbitMap.Repository.csproj" />
+      <ProjectReference Include="..\OrbitMap.Domain\OrbitMap.Domain.csproj" />
+      <ProjectReference Include="..\OrbitMap.Repository\OrbitMap.Repository.csproj" />
     </ItemGroup>
 
 </Project>
