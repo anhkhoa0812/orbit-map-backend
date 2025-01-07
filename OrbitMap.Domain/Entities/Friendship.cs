@@ -12,7 +12,7 @@ public class Friendship : EntityAuditBase<Guid>
     public EFriendshipStatus Status { get; set; } // Pending, Accepted, Rejected - Change to ENUM
 
     [ForeignKey(nameof(RequesterId))]
-    public User Requester { get; set; } = null!;
+    public virtual User Requester { get; set; } = null!;
     [ForeignKey(nameof(AddresseeId))]
-    public User Addressee { get; set; } = null!;
+    public virtual User Addressee { get; set; } = null!;
 }

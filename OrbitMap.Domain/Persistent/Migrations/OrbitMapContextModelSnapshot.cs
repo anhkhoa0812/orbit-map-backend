@@ -22,6 +22,26 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Connection", b =>
+                {
+                    b.Property<string>("ConnectionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ConnectionId");
+
+                    b.HasIndex("GroupName");
+
+                    b.ToTable("Connection");
+                });
+
             modelBuilder.Entity("OrbitMap.Domain.Entities.Friendship", b =>
                 {
                     b.Property<Guid>("Id")
@@ -31,11 +51,11 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<Guid>("AddresseeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("CreatedDate")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateTimeOffset?>("LastModifiedDate")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
@@ -51,6 +71,133 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasIndex("RequesterId");
 
                     b.ToTable("Friendship");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
+                            AddresseeId = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
+                            CreatedDate = new DateTime(2025, 1, 5, 17, 41, 18, 86, DateTimeKind.Local).AddTicks(7970),
+                            RequesterId = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
+                            Status = "Accepted"
+                        });
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Group", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("Group");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.LastMessageChat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("MessageLastDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RecipientUsername")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SenderUsername")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("LastMessageChat");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateRead")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RecipientUsername")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SenderUsername")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Message");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
+                            Name = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.User", b =>
@@ -65,14 +212,21 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<DateTimeOffset>("CreatedDate")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsPremium")
                         .HasColumnType("bit");
 
-                    b.Property<DateTimeOffset?>("LastModifiedDate")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime>("LastActive")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -81,6 +235,9 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("varchar(50)");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -91,6 +248,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
 
+                    b.HasIndex("RoleId");
+
                     b.HasIndex("Username")
                         .IsUnique();
 
@@ -99,25 +258,63 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("37016d78-ba60-4ffd-9fe8-91337db8baba"),
-                            CreatedDate = new DateTimeOffset(new DateTime(2025, 1, 1, 22, 33, 14, 132, DateTimeKind.Unspecified).AddTicks(8590), new TimeSpan(0, 7, 0, 0, 0)),
+                            Id = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
+                            CreatedDate = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1340),
+                            DisplayName = "admin",
                             IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1340),
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",
+                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
                             Username = "admin"
+                        },
+                        new
+                        {
+                            Id = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
+                            CreatedDate = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1360),
+                            DisplayName = "khoa",
+                            IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1360),
+                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            PhoneNumber = "1234567890",
+                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
+                            Username = "khoa"
+                        },
+                        new
+                        {
+                            Id = new Guid("68c029f3-b49f-41da-864c-40299f71a956"),
+                            CreatedDate = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1370),
+                            DisplayName = "hoang",
+                            IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 5, 17, 41, 18, 90, DateTimeKind.Local).AddTicks(1370),
+                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            PhoneNumber = "0399533724",
+                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
+                            Username = "hoang"
                         });
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Connection", b =>
+                {
+                    b.HasOne("OrbitMap.Domain.Entities.Group", "Group")
+                        .WithMany("Connections")
+                        .HasForeignKey("GroupName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Friendship", b =>
                 {
                     b.HasOne("OrbitMap.Domain.Entities.User", "Addressee")
-                        .WithMany()
+                        .WithMany("FriendshipAddressees")
                         .HasForeignKey("AddresseeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("OrbitMap.Domain.Entities.User", "Requester")
-                        .WithMany("Friendships")
+                        .WithMany("FriendshipRequests")
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -127,9 +324,73 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("Requester");
                 });
 
+            modelBuilder.Entity("OrbitMap.Domain.Entities.LastMessageChat", b =>
+                {
+                    b.HasOne("OrbitMap.Domain.Entities.User", "Recipient")
+                        .WithMany("LastMessageChatsReceived")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrbitMap.Domain.Entities.User", "Sender")
+                        .WithMany("LastMessageChatsSent")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Message", b =>
+                {
+                    b.HasOne("OrbitMap.Domain.Entities.User", "Recipient")
+                        .WithMany("MessagesReceived")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrbitMap.Domain.Entities.User", "Sender")
+                        .WithMany("MessagesSent")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("OrbitMap.Domain.Entities.User", b =>
                 {
-                    b.Navigation("Friendships");
+                    b.HasOne("OrbitMap.Domain.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Group", b =>
+                {
+                    b.Navigation("Connections");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.User", b =>
+                {
+                    b.Navigation("FriendshipAddressees");
+
+                    b.Navigation("FriendshipRequests");
+
+                    b.Navigation("LastMessageChatsReceived");
+
+                    b.Navigation("LastMessageChatsSent");
+
+                    b.Navigation("MessagesReceived");
+
+                    b.Navigation("MessagesSent");
                 });
 #pragma warning restore 612, 618
         }

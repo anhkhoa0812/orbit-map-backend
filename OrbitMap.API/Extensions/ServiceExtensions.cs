@@ -1,16 +1,69 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OrbitMap.API.Services.Implement;
+using OrbitMap.API.Services.Interface;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OrbitMap.API.Extensions;
 
 public static class ServiceExtensions
 {
-    
+    public static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IFriendshipService, FriendshipService>();
+        services.AddScoped<IOneSignalService, OneSignalService>();
+        services.AddScoped<NotificationService>();
+        services.AddScoped<IRedisService, RedisService>();
+        services.AddScoped<ISmsService, SmsService>();
+        services.AddScoped<ILastMessageChatService, LastMessageChatService>();
+        return services;
+    }
+    public static IServiceCollection AddJwtValidation(this IServiceCollection services)
+    {
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidIssuer = "OrbitMap",
+                ValidateIssuer = true,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes("taolabocuachungmaychungmaylaconcuatao"))
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
+        });
+        return services;
+    }
+
     public static IServiceCollection AddConfigSwagger(this IServiceCollection services)
     {
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo() {Title = "Orbit Map System", Version = "v1"});
+            options.SwaggerDoc("v1", new OpenApiInfo() {Title = "Pos System", Version = "v1"});
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 In = ParameterLocation.Header,

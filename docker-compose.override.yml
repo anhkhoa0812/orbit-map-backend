@@ -1,0 +1,10 @@
+﻿services:
+  orbitmap.api:
+    container_name: orbitmap.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - "ConnectionStrings:DefaultConnectionString=Server=microservices1.database.windows.net;Database=OrbitMapDb;User Id=khoa;Password=123456aA@$;TrustServerCertificate=True;MultipleActiveResultSets=true"
+    ports:
+      - "6001:80"
+    restart: always

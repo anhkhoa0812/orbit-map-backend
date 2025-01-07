@@ -1,0 +1,12 @@
+using OrbitMap.API.Payload.Request.User;
+using OrbitMap.API.Payload.Response.User;
+using LoginRequest = OrbitMap.API.Payload.Request.User.LoginRequest;
+
+namespace OrbitMap.API.Services.Interface;
+
+public interface IUserService
+{
+    public Task<LoginResponse> Login(LoginRequest loginRequest);
+    
+    public Task<LoginResponse> Register(RegisterRequest registerRequest);
+}

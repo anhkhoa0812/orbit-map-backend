@@ -1,0 +1,6 @@
+﻿services:
+  orbitmap.api:
+    image: ${DOCKER_REGISTRY-}orbitmap.api:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: OrbitMap.API/Dockerfile

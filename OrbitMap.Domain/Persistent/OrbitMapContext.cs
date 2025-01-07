@@ -17,7 +17,11 @@ public class OrbitMapContext : DbContext
     
     public DbSet<User> User { get; set; }
     public DbSet<Friendship> Friendship { get; set; }
-    
+    public DbSet<Role> Role { get; set; }
+    public DbSet<Message> Message { get; set; }
+    public DbSet<LastMessageChat> LastMessageChat { get; set; }
+    public DbSet<Group> Group { get; set; }
+    public DbSet<Connection> Connection { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
@@ -43,9 +47,9 @@ public class OrbitMapContext : DbContext
                     }
                     break;
                 case EntityState.Modified:
-                    Entry(item.Entity).Property("Id").IsModified = false;
                     if(item.Entity is IDateTracking modifiedEntity)
                     {
+                        Entry(item.Entity).Property("Id").IsModified = false;
                         modifiedEntity.LastModifiedDate = DateTime.Now;
                         item.State = EntityState.Modified;
                     }
