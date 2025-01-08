@@ -10,7 +10,7 @@ public class LoginResponse
     public string DisplayName { get; set; }
     public string PhoneNumber { get; set; }
     public string? AvatarUrl { get; set; }
-    public string? Bio { get; set; }
+    public DateOnly? Birthday { get; set; }
     public bool IsPremium { get; set; }
     public DateTime LastActive { get; set; } = DateTime.Now;
     public string Role { get; set; }

@@ -2,6 +2,7 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Persistent;
 using StackExchange.Redis;
 
@@ -21,6 +22,7 @@ public static class ConfigureServices
             config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"));
         });
         services.AddHangfireServer();
+        services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
         return services;
     }
     public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)

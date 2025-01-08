@@ -6,5 +6,5 @@ public class UserDto
     public string DisplayName { get; set; }
     public DateTime LastActive { get; set; }
     public string? AvatarUrl { get; set; }
-    public string? Bio { get; set; }
+    public DateOnly? Birhtday { get; set; }
 }

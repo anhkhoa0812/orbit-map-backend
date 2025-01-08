@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
+using System.Security.Authentication;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using OrbitMap.API.Payload.Request.User;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
@@ -17,9 +19,11 @@ namespace OrbitMap.API.Services.Implement;
 public class UserService : BaseService<UserService>, IUserService
 {
     private readonly IRedisService _redisService;
-    public UserService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IRedisService redisService) : base(unitOfWork, logger, mapper, httpContextAccessor)
+    private readonly IUploadService _uploadService;
+    public UserService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IRedisService redisService, IUploadService uploadService) : base(unitOfWork, logger, mapper, httpContextAccessor)
     {
         _redisService = redisService;
+        _uploadService = uploadService;
     }
 
     public async Task<LoginResponse> Login(LoginRequest loginRequest)
@@ -33,7 +37,6 @@ public class UserService : BaseService<UserService>, IUserService
         );
         if (user == null) throw new BadHttpRequestException("Invalid username or password");
         
-        ERoleEnum roleEnum = EnumUtil.ParseEnum<ERoleEnum>(user.Role.Name);
         var guidClaim = new Tuple<string, Guid>("userId", user.Id);
         var result = _mapper.Map<LoginResponse>(user);
         var token = JwtUtil.GenerateJwtToken(user, guidClaim);
@@ -72,10 +75,34 @@ public class UserService : BaseService<UserService>, IUserService
         
         if(!isSuccess) throw new Exception("Register failed");
         
-        var response = _mapper.Map<LoginResponse>(user);
         var guidClaim = new Tuple<string, Guid>("userId", user.Id);
-        var token = JwtUtil.GenerateJwtToken(user, guidClaim);
-        response.Token = token;
-        return response;
+        var result = _mapper.Map<LoginResponse>(user);
+        var userFromDb = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+            predicate: u => u.Username == user.Username,
+            include: u => u.Include(u => u.Role)
+        );
+        var token = JwtUtil.GenerateJwtToken(userFromDb, guidClaim);
+        result.Token = token;
+        return result;
+    }
+
+    public async Task<UserDto> UpdateProfile(string username, UpdateUserRequest updateUserRequest)
+    {
+        if(string.IsNullOrEmpty(username))
+            throw new AuthenticationException("Unauthorized");
+        var userList = await _unitOfWork.GetRepository<User>().GetListAsync();
+        if(!string.IsNullOrEmpty(updateUserRequest.Username) && userList.Any(x => x.Username.Equals(updateUserRequest.Username)))
+            throw new BadHttpRequestException("Username is already taken");
+        var currentUser = userList.SingleOrDefault(x => x.Username.Equals(username));
+        if(currentUser == null) throw new BadHttpRequestException("User not found");
+        var updatedUser = _mapper.Map(updateUserRequest, currentUser);
+        if (!string.IsNullOrEmpty(updateUserRequest.ImageBase64))
+        {
+            var imageUrl = await _uploadService.UploadImageAsync(updateUserRequest.ImageBase64);
+            updatedUser.AvatarUrl = imageUrl.SecureUrl.ToString();
+        }
+        _unitOfWork.GetRepository<User>().UpdateAsync(updatedUser);
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<UserDto>(updatedUser);
     }
 }

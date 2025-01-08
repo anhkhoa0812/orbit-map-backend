@@ -25,6 +25,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             RoleId = Guid.Parse("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
             LastActive = DateTime.Now,
             DisplayName = "admin",
+            Birthday = DateOnly.Parse("2003-12-08")
         });
         builder.HasData(new User()
         {
@@ -37,6 +38,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             RoleId = Guid.Parse("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
             LastActive = DateTime.Now,
             DisplayName = "khoa",
+            Birthday = DateOnly.Parse("2003-12-08")
         });
         builder.HasData(new User()
         {
@@ -49,6 +51,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             RoleId = Guid.Parse("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
             LastActive = DateTime.Now,
             DisplayName = "hoang",
+            Birthday = DateOnly.Parse("2003-12-08")
         });
     }
 }

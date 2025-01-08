@@ -32,4 +32,5 @@ public class OneSignalController : BaseController<OneSignalController>
         var result = await _oneSignalService.AddPlayerId(playerId, User.Identity.Name);
         return new ApiSuccessResult<PlayerIdsDto>(result);
     }
+    
 }

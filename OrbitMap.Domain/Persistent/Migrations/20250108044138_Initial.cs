@@ -65,7 +65,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     PhoneNumber = table.Column<string>(type: "varchar(50)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AvatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Bio = table.Column<string>(type: "nvarchar(255)", nullable: true),
+                    Birthday = table.Column<DateOnly>(type: "date", nullable: true),
                     IsPremium = table.Column<bool>(type: "bit", nullable: false),
                     LastActive = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -173,19 +173,49 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PlayerIds",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlayerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerIds", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlayerIds_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Role",
                 columns: new[] { "Id", "Name" },
-                values: new object[] { new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "Admin" });
+                values: new object[,]
+                {
+                    { new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "Admin" },
+                    { new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "Member" }
+                });
 
             migrationBuilder.InsertData(
                 table: "User",
-                columns: new[] { "Id", "AvatarUrl", "Bio", "CreatedDate", "DisplayName", "IsPremium", "LastActive", "LastModifiedDate", "PasswordHash", "PhoneNumber", "RoleId", "Username" },
+                columns: new[] { "Id", "AvatarUrl", "Birthday", "CreatedDate", "DisplayName", "IsPremium", "LastActive", "LastModifiedDate", "PasswordHash", "PhoneNumber", "RoleId", "Username" },
                 values: new object[,]
                 {
-                    { new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), null, null, new DateTime(2025, 1, 4, 18, 23, 25, 813, DateTimeKind.Local).AddTicks(8600), "admin", true, new DateTime(2025, 1, 4, 18, 23, 25, 813, DateTimeKind.Local).AddTicks(8600), null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "0123456789", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "admin" },
-                    { new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), null, null, new DateTime(2025, 1, 4, 18, 23, 25, 813, DateTimeKind.Local).AddTicks(8630), "khoa", true, new DateTime(2025, 1, 4, 18, 23, 25, 813, DateTimeKind.Local).AddTicks(8630), null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "1234567890", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "khoa" }
+                    { new Guid("68c029f3-b49f-41da-864c-40299f71a956"), null, new DateOnly(2003, 12, 8), new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1340), "hoang", true, new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1350), null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "0399533724", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "hoang" },
+                    { new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), null, new DateOnly(2003, 12, 8), new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1210), "admin", true, new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1210), null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "0123456789", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "admin" },
+                    { new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), null, new DateOnly(2003, 12, 8), new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1330), "khoa", true, new DateTime(2025, 1, 8, 11, 41, 38, 624, DateTimeKind.Local).AddTicks(1330), null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "1234567890", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "khoa" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Friendship",
+                columns: new[] { "Id", "AddresseeId", "CreatedDate", "LastModifiedDate", "RequesterId", "Status" },
+                values: new object[] { new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"), new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), new DateTime(2025, 1, 8, 11, 41, 38, 621, DateTimeKind.Local).AddTicks(1070), null, new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), "Accepted" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Connection_GroupName",
@@ -223,6 +253,11 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayerIds_UserId",
+                table: "PlayerIds",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_PhoneNumber",
                 table: "User",
                 column: "PhoneNumber",
@@ -254,6 +289,9 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             migrationBuilder.DropTable(
                 name: "Message");
+
+            migrationBuilder.DropTable(
+                name: "PlayerIds");
 
             migrationBuilder.DropTable(
                 name: "Group");

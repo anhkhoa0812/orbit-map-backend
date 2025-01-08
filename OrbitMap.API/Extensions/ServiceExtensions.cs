@@ -20,6 +20,7 @@ public static class ServiceExtensions
         services.AddScoped<IRedisService, RedisService>();
         services.AddScoped<ISmsService, SmsService>();
         services.AddScoped<ILastMessageChatService, LastMessageChatService>();
+        services.AddScoped<IUploadService, UploadService>();
         return services;
     }
     public static IServiceCollection AddJwtValidation(this IServiceCollection services)
@@ -45,13 +46,11 @@ public static class ServiceExtensions
                 OnMessageReceived = context =>
                 {
                     var accessToken = context.Request.Query["access_token"];
-
                     var path = context.HttpContext.Request.Path;
                     if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
                     {
                         context.Token = accessToken;
                     }
-
                     return Task.CompletedTask;
                 }
             };

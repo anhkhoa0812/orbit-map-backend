@@ -24,8 +24,8 @@ public class User : EntityAuditBase<Guid>
 
     [Column(TypeName = "nvarchar(max)")] 
     public string? AvatarUrl { get; set; }
-    [Column(TypeName = "nvarchar(255)")] 
-    public string? Bio { get; set; }
+    [Column(TypeName = "date")] 
+    public DateOnly? Birthday { get; set; }
     public bool IsPremium { get; set; }
 
     public DateTime LastActive { get; set; } = DateTime.Now;
