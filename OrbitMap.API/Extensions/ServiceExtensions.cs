@@ -21,6 +21,7 @@ public static class ServiceExtensions
         services.AddScoped<ISmsService, SmsService>();
         services.AddScoped<ILastMessageChatService, LastMessageChatService>();
         services.AddScoped<IUploadService, UploadService>();
+        services.AddScoped<IStoryService, StoryService>();
         return services;
     }
     public static IServiceCollection AddJwtValidation(this IServiceCollection services)
@@ -62,7 +63,7 @@ public static class ServiceExtensions
     {
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo() {Title = "Pos System", Version = "v1"});
+            options.SwaggerDoc("v1", new OpenApiInfo() {Title = "Con mẹ thèn huy hoàng", Version = "v1"});
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 In = ParameterLocation.Header,
@@ -95,4 +96,5 @@ public static class ServiceExtensions
         });
         return services;
     }
+    
 }

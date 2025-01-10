@@ -2,8 +2,10 @@ using System.Text.Json.Serialization;
 using Hangfire;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Extensions;
+using OrbitMap.API.Helper;
 using OrbitMap.API.Logger;
 using OrbitMap.API.Middlewares;
+using OrbitMap.API.Services.Implement;
 using OrbitMap.API.SignalR;
 using OrbitMap.Domain;
 using OrbitMap.Repository;
@@ -17,7 +19,8 @@ try
     builder.Services.AddCors(options =>
     {
         options.AddPolicy(name: CorsConstant.PolicyName,
-            policy => { policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
+            policy => { policy.WithOrigins("http://localhost:3000")
+                .AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
     });
     builder.Services.AddControllers().AddJsonOptions(x =>
     {
@@ -57,11 +60,19 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
     app.MapControllers();
-    app.UseHangfireDashboard();
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] {new HangfireAuthorizationFilter()}
+    });
     app.UseHangfireServer();
     
     app.MapHub<PresenceHub>("hubs/presence");
     app.MapHub<MessageHub>("hubs/message");
+    RecurringJob.AddOrUpdate<StoryCleanupService>(
+        "remove-expired-stories",
+        job => job.RemoveExpiredStories(),
+        Cron.Hourly
+    );
     app.Run();
 }
 catch (Exception ex)

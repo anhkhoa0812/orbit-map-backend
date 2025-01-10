@@ -22,6 +22,7 @@ public class OrbitMapContext : DbContext
     public DbSet<LastMessageChat> LastMessageChat { get; set; }
     public DbSet<Group> Group { get; set; }
     public DbSet<Connection> Connection { get; set; }
+    public DbSet<Story> Story { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

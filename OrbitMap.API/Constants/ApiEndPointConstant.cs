@@ -19,6 +19,10 @@ public static class ApiEndPointConstant
         public const string SendOtp = AuthenticationEndpoint + "/otp";
     }
 
+    public static class User
+    {
+        public const string UserEndpoint = ApiEndpoint + "/users";
+    }
     public static class OneSignal
     {
         public const string OneSignalEndpoint = ApiEndpoint + "/onesignal";
@@ -37,7 +41,11 @@ public static class ApiEndPointConstant
     public static class LastMessageChat
     {
         public const string LastMessageChatEndpoint = ApiEndpoint + "/last-message-chat";
-        
-        
+    }
+
+    public static class Story
+    {
+        public const string StoryEndpoint = ApiEndpoint + "/stories";
+        public const string StoryWithId = StoryEndpoint + "/{id}";
     }
 }

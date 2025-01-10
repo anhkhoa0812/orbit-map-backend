@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Contracts.Domains;
@@ -37,6 +38,8 @@ public class User : EntityAuditBase<Guid>
     public ICollection<LastMessageChat> LastMessageChatsSent { get; set; }
 
     public ICollection<LastMessageChat> LastMessageChatsReceived { get; set; }
+    
+    public ICollection<Story> Stories { get; set; }
     public Guid RoleId { get; set; }
     [ForeignKey(nameof(RoleId))] public virtual Role Role { get; set; } = null!;
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrbitMap.Domain.Persistent;
 
@@ -11,9 +12,11 @@ using OrbitMap.Domain.Persistent;
 namespace OrbitMap.Domain.Persistent.Migrations
 {
     [DbContext(typeof(OrbitMapContext))]
-    partial class OrbitMapContextModelSnapshot : ModelSnapshot
+    [Migration("20250110080027_Add_Story_Table")]
+    partial class Add_Story_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,7 +80,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
                             AddresseeId = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 336, DateTimeKind.Local).AddTicks(6360),
+                            CreatedDate = new DateTime(2025, 1, 10, 15, 0, 27, 637, DateTimeKind.Local).AddTicks(4890),
                             RequesterId = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             Status = "Accepted"
                         });
@@ -236,6 +239,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
+                        .IsRequired()
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime>("CreatedDate")
@@ -262,6 +266,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Weather")
+                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
@@ -331,10 +336,10 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(4910),
+                            CreatedDate = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5390),
                             DisplayName = "admin",
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(4920),
+                            LastActive = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5400),
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",
                             RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
@@ -344,10 +349,10 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
                             Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5060),
+                            CreatedDate = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5510),
                             DisplayName = "khoa",
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5060),
+                            LastActive = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5510),
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "1234567890",
                             RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
@@ -357,10 +362,10 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("68c029f3-b49f-41da-864c-40299f71a956"),
                             Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5080),
+                            CreatedDate = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5530),
                             DisplayName = "hoang",
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5080),
+                            LastActive = new DateTime(2025, 1, 10, 15, 0, 27, 640, DateTimeKind.Local).AddTicks(5530),
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0399533724",
                             RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
@@ -450,9 +455,9 @@ namespace OrbitMap.Domain.Persistent.Migrations
             modelBuilder.Entity("OrbitMap.Domain.Entities.Story", b =>
                 {
                     b.HasOne("OrbitMap.Domain.Entities.User", "User")
-                        .WithMany("Stories")
+                        .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -489,8 +494,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("MessagesSent");
 
                     b.Navigation("PlayerIds");
-
-                    b.Navigation("Stories");
                 });
 #pragma warning restore 612, 618
         }
