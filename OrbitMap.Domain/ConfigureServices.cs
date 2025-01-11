@@ -20,19 +20,23 @@ public static class ConfigureServices
         });
         services.AddHangfire(config =>
         {
-            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"), new SqlServerStorageOptions()
-            {
-                EnableHeavyMigrations =true,
-                DisableGlobalLocks = true
-            });
+            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"),
+                new SqlServerStorageOptions
+                {
+                    EnableHeavyMigrations = true,
+                    DisableGlobalLocks = true
+                });
         });
         services.AddHangfireServer();
         services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+        services.Configure<CraftMyPdfSettings>(configuration.GetSection("CraftMyPdf"));
         return services;
     }
+
     public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis")));
+        services.AddSingleton<IConnectionMultiplexer>(
+            ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis")));
         return services;
     }
 }

@@ -156,7 +156,7 @@ public class PresenceHub : Hub
         return result;
     }
 
-    private async Task<List<string>> GetFriendUserNameOfUserAsync(User user)
+    private async Task<List<string>> GetFriendUserNameOfUserAsync(Member user)
     {
         var friends = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
             predicate: f => (f.RequesterId == user.Id || f.AddresseeId == user.Id) &&

@@ -20,7 +20,6 @@ namespace OrbitMap.API.SignalR;
 [Authorize]
 public class MessageHub : Hub
 {
-    private readonly IConfiguration _config;
     private readonly ILogger _logger;
     private readonly IMapper _mapper;
     private readonly IOneSignalService _oneSignalService;
@@ -38,7 +37,6 @@ public class MessageHub : Hub
         _tracker = tracker;
         _presenceHub = presenceHub;
         _logger = logger;
-        _config = config;
     }
 
     public override async Task OnConnectedAsync()
@@ -75,6 +73,16 @@ public class MessageHub : Hub
         var sender = users.SingleOrDefault(x => x.Username.Equals(username));
         var recipient = users.SingleOrDefault(x => x.Username.Equals(createMessageDto.RecipientUsername));
         if (recipient == null) throw new HubException("Not found recipient user");
+
+        Story? story = null;
+        if (createMessageDto.StoryId.HasValue)
+        {
+            story = await _unitOfWork.GetRepository<Story>().SingleOrDefaultAsync(
+                predicate: x => x.Id == createMessageDto.StoryId && x.IsDisabled == false
+            );
+            if (story == null) throw new HubException("Story not found");
+        }
+
         var message = new Message
         {
             Id = Guid.NewGuid(),
@@ -83,6 +91,7 @@ public class MessageHub : Hub
             SenderUsername = sender.Username,
             RecipientUsername = recipient.Username,
             Content = createMessageDto.Content,
+            StoryId = story?.Id,
             CreatedDate = DateTime.UtcNow
         };
         var groupName = GetGroupName(sender.Username, recipient.Username);
@@ -100,10 +109,13 @@ public class MessageHub : Hub
             var connections = await _tracker.GetConnectionsForUser(createMessageDto.RecipientUsername);
             if (connections != null)
             {
-                var user = _mapper.Map<UserDto>(sender);
+                var member = _mapper.Map<UserDto>(sender);
                 await _presenceHub.Clients.Clients(connections)
-                    .SendAsync("NewMessageReceived", user, createMessageDto.Content);
-                var messageSend = $"😊 {sender.DisplayName} send a message to you";
+                    .SendAsync("NewMessageReceived", member, createMessageDto.Content);
+                string messageSend = null;
+                if (message.StoryId.HasValue) messageSend = $"😊 {sender.DisplayName} reply your story";
+                else
+                    messageSend = $"😊 {sender.DisplayName} send a message to you";
                 BackgroundJob.Enqueue<NotificationService>(
                     service => service.SendNotificationToUser(sender.DisplayName, createMessageDto.RecipientUsername,
                         messageSend)

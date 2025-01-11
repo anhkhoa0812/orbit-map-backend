@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Contracts.Domains;
 
 namespace OrbitMap.Domain.Entities;
@@ -14,4 +15,8 @@ public class Message : EntityAuditBase<Guid>
 
     public string Content { get; set; }
     public DateTime? DateRead { get; set; }
+
+    public Guid? StoryId { get; set; }
+
+    [ForeignKey(nameof(StoryId))] public Story? Story { get; set; }
 }
