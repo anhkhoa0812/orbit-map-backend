@@ -50,7 +50,11 @@ try
     if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
     {
         app.UseSwagger();
-        app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "OrbitMap API V1"); });
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "OrbitMap API V1");
+            c.InjectStylesheet("/assets/css/kkk.css");
+        });
     }
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseCors(CorsConstant.PolicyName);
@@ -60,19 +64,15 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
     app.MapControllers();
-    app.UseHangfireDashboard("/hangfire", new DashboardOptions
-    {
-        Authorization = new[] {new HangfireAuthorizationFilter()}
-    });
+    app.UseHangfireDashboard();
     app.UseHangfireServer();
-    
     app.MapHub<PresenceHub>("hubs/presence");
     app.MapHub<MessageHub>("hubs/message");
-    RecurringJob.AddOrUpdate<StoryCleanupService>(
-        "remove-expired-stories",
-        job => job.RemoveExpiredStories(),
-        Cron.Hourly
-    );
+    // RecurringJob.AddOrUpdate<StoryCleanupService>(
+    //     "remove-expired-stories",
+    //     job => job.RemoveExpiredStories(),
+    //     Cron.Hourly
+    // );
     app.Run();
 }
 catch (Exception ex)

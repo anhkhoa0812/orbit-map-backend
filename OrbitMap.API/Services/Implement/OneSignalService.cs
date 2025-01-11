@@ -14,7 +14,10 @@ namespace OrbitMap.API.Services.Implement;
 public class OneSignalService : BaseService<OneSignalService>, IOneSignalService
 {
     private readonly IConfiguration _config;
-    public OneSignalService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration config) : base(unitOfWork, logger, mapper, httpContextAccessor)
+
+    public OneSignalService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor, IConfiguration config) : base(unitOfWork, logger, mapper,
+        httpContextAccessor)
     {
         _config = config;
     }
@@ -37,7 +40,7 @@ public class OneSignalService : BaseService<OneSignalService>, IOneSignalService
     {
         if (!string.IsNullOrEmpty(playerId) || playerId != "null")
         {
-            var existPlayer = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+            var existPlayer = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                 predicate: x => x.Username.Equals(userName),
                 include: u => u.Include(u => u.PlayerIds)
             );
@@ -47,26 +50,24 @@ public class OneSignalService : BaseService<OneSignalService>, IOneSignalService
 
                 if (isExist == null)
                 {
-                    var currentUser = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+                    var currentUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                         predicate: x => x.Username.Equals(userName)
                     );
-                    var player = new PlayerIds()
+                    var player = new PlayerIds
                     {
                         Id = Guid.NewGuid(),
                         PlayerId = playerId,
-                        User = currentUser,
+                        Member = currentUser,
                         Username = currentUser.Username
                     };
                     await _unitOfWork.GetRepository<PlayerIds>().InsertAsync(player);
                     var isSuccess = await _unitOfWork.CommitAsync() > 0;
-                    if (!isSuccess)
-                    {
-                        throw new ("Can not add player id");
-                    }
+                    if (!isSuccess) throw new Exception("Can not add player id");
                     return _mapper.Map<PlayerIdsDto>(player);
                 }
             }
         }
+
         throw new BadHttpRequestException("PlayerId is null or empty");
     }
 }

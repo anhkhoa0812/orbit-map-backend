@@ -19,29 +19,34 @@ namespace OrbitMap.API.Services.Implement;
 
 public class FriendshipService : BaseService<FriendshipService>, IFriendshipService
 {
-    public FriendshipService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, mapper, httpContextAccessor)
+    public FriendshipService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, mapper, httpContextAccessor)
     {
     }
 
     public async Task<FriendResponse> AddFriendAsync(AddFriendRequest request)
     {
         var requesterUsername = _httpContextAccessor.HttpContext?.User.GetUsername();
-        if(string.IsNullOrEmpty(requesterUsername)) 
+        if (string.IsNullOrEmpty(requesterUsername))
             throw new AuthenticationException("User is not authenticated");
-        if(requesterUsername == request.Username)
+        if (requesterUsername == request.Username)
             throw new BadHttpRequestException("You cannot add yourself as a friend");
-        
-        var requester = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(predicate: u => u.Username == requesterUsername);
-        var addressee = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(predicate: u => u.Username == request.Username);
-        
-        if(addressee == null)
+
+        var requester = await _unitOfWork.GetRepository<Member>()
+            .SingleOrDefaultAsync(predicate: u => u.Username == requesterUsername);
+        var addressee = await _unitOfWork.GetRepository<Member>()
+            .SingleOrDefaultAsync(predicate: u => u.Username == request.Username);
+
+        if (addressee == null)
             throw new BadHttpRequestException("User not found");
-        
-        var existFriendship = await _unitOfWork.GetRepository<Friendship>().SingleOrDefaultAsync(predicate: f => (f.RequesterId == requester.Id && f.AddresseeId == addressee.Id) || (f.RequesterId == addressee.Id && f.AddresseeId == requester.Id));
-        if(existFriendship != null)
+
+        var existFriendship = await _unitOfWork.GetRepository<Friendship>().SingleOrDefaultAsync(predicate: f =>
+            (f.RequesterId == requester.Id && f.AddresseeId == addressee.Id) ||
+            (f.RequesterId == addressee.Id && f.AddresseeId == requester.Id));
+        if (existFriendship != null)
             throw new BadHttpRequestException("Friendship already exists");
 
-        var friendship = new Friendship()
+        var friendship = new Friendship
         {
             AddresseeId = addressee.Id,
             RequesterId = requester.Id,
@@ -49,7 +54,7 @@ public class FriendshipService : BaseService<FriendshipService>, IFriendshipServ
         };
         await _unitOfWork.GetRepository<Friendship>().InsertAsync(friendship);
         var isSuccessful = await _unitOfWork.CommitAsync() > 0;
-        if(!isSuccessful)
+        if (!isSuccessful)
             throw new Exception("Failed to add friend");
         var result = _mapper.Map<FriendResponse>(friendship);
         var messageSend = $"😊 {requester.DisplayName}  send a friend request to you";
@@ -62,68 +67,73 @@ public class FriendshipService : BaseService<FriendshipService>, IFriendshipServ
     public async Task<FriendResponse> UpdateFriendStatus(UpdateFriendStatusRequest request)
     {
         var addresseeUsername = _httpContextAccessor.HttpContext?.User.GetUsername();
-        if(string.IsNullOrEmpty(addresseeUsername)) 
+        if (string.IsNullOrEmpty(addresseeUsername))
             throw new AuthenticationException("User is not authenticated");
-        
-        if(request.Status == EFriendshipStatus.Pending)
+
+        if (request.Status == EFriendshipStatus.Pending)
             throw new BadHttpRequestException("Invalid status");
-        
-        var addressee = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(predicate: u => u.Username == addresseeUsername);
-        var requester = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(predicate: u => u.Username == request.RequestUsername);
-        
-        if(requester == null)
+
+        var addressee = await _unitOfWork.GetRepository<Member>()
+            .SingleOrDefaultAsync(predicate: u => u.Username == addresseeUsername);
+        var requester = await _unitOfWork.GetRepository<Member>()
+            .SingleOrDefaultAsync(predicate: u => u.Username == request.RequestUsername);
+
+        if (requester == null)
             throw new BadHttpRequestException("User not found");
 
         var friendship = await _unitOfWork.GetRepository<Friendship>().SingleOrDefaultAsync(
             predicate: f => (f.RequesterId == requester.Id && f.AddresseeId == addressee.Id) ||
                             (f.RequesterId == addressee.Id && f.AddresseeId == requester.Id)
         );
-        if(friendship == null)
+        if (friendship == null)
             throw new BadHttpRequestException("Friendship not found");
-        if(friendship.Status != EFriendshipStatus.Pending)
+        if (friendship.Status != EFriendshipStatus.Pending)
             throw new BadHttpRequestException("Friendship status is not pending");
-        
+
         friendship.Status = request.Status;
         _unitOfWork.GetRepository<Friendship>().UpdateAsync(friendship);
-        
+
         var isSuccessful = await _unitOfWork.CommitAsync() > 0;
-        if(!isSuccessful)
+        if (!isSuccessful)
             throw new Exception("Failed to update friend status");
         var result = _mapper.Map<FriendResponse>(friendship);
         return result;
     }
 
-        public async Task<IPaginate<UserDto>> GetFriendsForUser(int page, int size, string? searchTerm, string status)
+    public async Task<IPaginate<UserDto>> GetFriendsForUser(int page, int size, string? searchTerm, string status)
+    {
+        if (status != "Accepted" && status != "Pending")
+            throw new BadHttpRequestException("Invalid status");
+        var currentUsername = _httpContextAccessor.HttpContext?.User.GetUsername();
+        if (string.IsNullOrEmpty(currentUsername))
+            throw new AuthenticationException("User is not authenticated");
+
+        var user = await _unitOfWork.GetRepository<Member>()
+            .SingleOrDefaultAsync(predicate: u => u.Username == currentUsername);
+        if (user == null)
+            throw new BadHttpRequestException("User not found");
+        var friendships = await _unitOfWork.GetRepository<Friendship>().GetPagingListAsync(
+            f => (f.Requester.Username == currentUsername || f.Addressee.Username == currentUsername)
+                 && f.Status == (status == "Accepted" ? EFriendshipStatus.Accepted : EFriendshipStatus.Pending),
+            include: f => f.Include(f => f.Requester).Include(f => f.Addressee),
+            page: page,
+            size: size,
+            orderBy: x => x.OrderBy(x => x.LastModifiedDate ?? x.CreatedDate)
+        );
+        var friends =
+            friendships.Items.Select(f => f.Requester.Username == currentUsername ? f.Addressee : f.Requester);
+        if (!string.IsNullOrEmpty(searchTerm))
         {
-            if(status != "Accepted" && status != "Pending")
-                throw new BadHttpRequestException("Invalid status");
-            var currentUsername = _httpContextAccessor.HttpContext?.User.GetUsername();
-            if(string.IsNullOrEmpty(currentUsername))
-                throw new AuthenticationException("User is not authenticated");
-            
-            var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(predicate: u => u.Username == currentUsername);
-            if(user == null)
-                throw new BadHttpRequestException("User not found");
-            var friendships = await _unitOfWork.GetRepository<Friendship>().GetPagingListAsync(
-                predicate: f => (f.Requester.Username == currentUsername || f.Addressee.Username == currentUsername) 
-                                && f.Status == (status == "Accepted" ? EFriendshipStatus.Accepted : EFriendshipStatus.Pending),
-                include: f => f.Include(f => f.Requester).Include(f => f.Addressee),
-                page: page,
-                size: size,
-                orderBy: x => x.OrderBy(x => x.LastModifiedDate ?? x.CreatedDate)
+            var lowerSearchTerm = searchTerm.Trim().ToLower();
+            friends = friends.Where(x => x.Username.ToLower().Equals(lowerSearchTerm) ||
+                                         x.DisplayName.ToLower().Contains(lowerSearchTerm)
             );
-            var friends = friendships.Items.Select(f => f.Requester.Username == currentUsername ? f.Addressee : f.Requester);
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                var lowerSearchTerm = searchTerm.Trim().ToLower();
-                friends = friends.Where(x => x.Username.ToLower().Equals(lowerSearchTerm) ||
-                                   x.DisplayName.ToLower().Contains(lowerSearchTerm)
-                );
-            }
-            var paginatedFriends = new Paginate<User>(
-                friends, page, size, firstPage: 1
-            );
-            var result = _mapper.Map<IPaginate<UserDto>>(paginatedFriends);
-            return result;
         }
+
+        var paginatedFriends = new Paginate<Member>(
+            friends, page, size, 1
+        );
+        var result = _mapper.Map<IPaginate<UserDto>>(paginatedFriends);
+        return result;
+    }
 }

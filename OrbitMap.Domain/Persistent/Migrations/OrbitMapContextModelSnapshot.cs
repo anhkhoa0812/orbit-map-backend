@@ -77,7 +77,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
                             AddresseeId = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 336, DateTimeKind.Local).AddTicks(6360),
+                            CreatedDate = new DateTime(2025, 1, 12, 0, 9, 8, 530, DateTimeKind.Local).AddTicks(120),
                             RequesterId = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             Status = "Accepted"
                         });
@@ -184,12 +184,12 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("PlayerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -197,7 +197,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("MemberId");
 
                     b.ToTable("PlayerIds");
                 });
@@ -226,6 +226,11 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
                             Name = "Member"
+                        },
+                        new
+                        {
+                            Id = new Guid("3fd223f6-3edd-4c87-888a-35defcff39e8"),
+                            Name = "Business"
                         });
                 });
 
@@ -280,21 +285,17 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateOnly?>("Birthday")
-                        .HasColumnType("date");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<bool>("IsPremium")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("LastActive")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
@@ -326,45 +327,81 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
                     b.ToTable("User");
 
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.UseTphMappingStrategy();
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("bcd34cfc-02e3-430c-93d1-a4943e10293a"),
+                            AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
+                            CreatedDate = new DateTime(2025, 1, 12, 0, 9, 8, 534, DateTimeKind.Local).AddTicks(4350),
+                            DisplayName = "admin",
+                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            PhoneNumber = "8123456789",
+                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
+                            Username = "admin"
+                        });
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Member", b =>
+                {
+                    b.HasBaseType("OrbitMap.Domain.Entities.User");
+
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsPremium")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastActive")
+                        .HasColumnType("datetime2");
+
+                    b.HasDiscriminator().HasValue("Member");
+
                     b.HasData(
                         new
                         {
                             Id = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
-                            Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(4910),
-                            DisplayName = "admin",
-                            IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(4920),
-                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
+                            CreatedDate = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9340),
+                            DisplayName = "Khoa Gió Tai",
+                            PasswordHash = "v6plobem2ptzJLRd532mc835oAiq5JhrqBgHaCbjR+Y=",
                             PhoneNumber = "0123456789",
-                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
-                            Username = "admin"
+                            RoleId = new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
+                            Username = "khoa",
+                            Birthday = new DateOnly(1999, 1, 1),
+                            IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9070)
                         },
                         new
                         {
                             Id = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-                            Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5060),
-                            DisplayName = "khoa",
-                            IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5060),
+                            AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
+                            CreatedDate = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9460),
+                            DisplayName = "Hoàng Gió Nhải",
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "1234567890",
-                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
-                            Username = "khoa"
+                            RoleId = new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
+                            Username = "hoang",
+                            Birthday = new DateOnly(1999, 1, 1),
+                            IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9450)
                         },
                         new
                         {
                             Id = new Guid("68c029f3-b49f-41da-864c-40299f71a956"),
-                            Birthday = new DateOnly(2003, 12, 8),
-                            CreatedDate = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5080),
-                            DisplayName = "hoang",
-                            IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 10, 15, 42, 52, 340, DateTimeKind.Local).AddTicks(5080),
-                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
+                            CreatedDate = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9480),
+                            DisplayName = "quan",
+                            PasswordHash = "e24ih8ftxem8WzOQkrSS/q4n7Yv3+eGp9GlZThzEFcs=",
                             PhoneNumber = "0399533724",
-                            RoleId = new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
-                            Username = "hoang"
+                            RoleId = new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
+                            Username = "quan",
+                            Birthday = new DateOnly(1999, 1, 1),
+                            IsPremium = true,
+                            LastActive = new DateTime(2025, 1, 12, 0, 9, 8, 531, DateTimeKind.Local).AddTicks(9470)
                         });
                 });
 
@@ -381,13 +418,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Friendship", b =>
                 {
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Addressee")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Addressee")
                         .WithMany("FriendshipAddressees")
                         .HasForeignKey("AddresseeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Requester")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Requester")
                         .WithMany("FriendshipRequests")
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -400,13 +437,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.LastMessageChat", b =>
                 {
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Recipient")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Recipient")
                         .WithMany("LastMessageChatsReceived")
                         .HasForeignKey("RecipientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Sender")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Sender")
                         .WithMany("LastMessageChatsSent")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -419,13 +456,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Message", b =>
                 {
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Recipient")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Recipient")
                         .WithMany("MessagesReceived")
                         .HasForeignKey("RecipientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OrbitMap.Domain.Entities.User", "Sender")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Sender")
                         .WithMany("MessagesSent")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -438,24 +475,24 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.PlayerIds", b =>
                 {
-                    b.HasOne("OrbitMap.Domain.Entities.User", "User")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
                         .WithMany("PlayerIds")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Member");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Story", b =>
                 {
-                    b.HasOne("OrbitMap.Domain.Entities.User", "User")
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
                         .WithMany("Stories")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Member");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.User", b =>
@@ -474,7 +511,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("Connections");
                 });
 
-            modelBuilder.Entity("OrbitMap.Domain.Entities.User", b =>
+            modelBuilder.Entity("OrbitMap.Domain.Entities.Member", b =>
                 {
                     b.Navigation("FriendshipAddressees");
 

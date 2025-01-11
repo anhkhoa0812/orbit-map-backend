@@ -4,7 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OrbitMap.API.Services.Implement;
 using OrbitMap.API.Services.Interface;
-using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OrbitMap.API.Extensions;
@@ -22,8 +21,10 @@ public static class ServiceExtensions
         services.AddScoped<ILastMessageChatService, LastMessageChatService>();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IStoryService, StoryService>();
+        services.AddScoped<CraftMyPdfService>();
         return services;
     }
+
     public static IServiceCollection AddJwtValidation(this IServiceCollection services)
     {
         services.AddAuthentication(options =>
@@ -32,7 +33,7 @@ public static class ServiceExtensions
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
         {
-            options.TokenValidationParameters = new TokenValidationParameters()
+            options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidIssuer = "OrbitMap",
                 ValidateIssuer = true,
@@ -49,9 +50,7 @@ public static class ServiceExtensions
                     var accessToken = context.Request.Query["access_token"];
                     var path = context.HttpContext.Request.Path;
                     if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                    {
                         context.Token = accessToken;
-                    }
                     return Task.CompletedTask;
                 }
             };
@@ -63,8 +62,8 @@ public static class ServiceExtensions
     {
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo() {Title = "Con mẹ thèn huy hoàng", Version = "v1"});
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Con mẹ thèn huy hoàng", Version = "v1" });
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
                 Description = "Please enter a valid token",
@@ -96,5 +95,4 @@ public static class ServiceExtensions
         });
         return services;
     }
-    
 }

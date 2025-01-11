@@ -11,6 +11,6 @@ public class StoryMapper : Profile
     {
         CreateMap<CreateStoryRequest, Story>();
         CreateMap<Story, StoryResponse>()
-            .ForMember(x => x.Username, opt => opt.MapFrom(x => x.User.Username));
+            .ForMember(x => x.Username, opt => opt.MapFrom(x => x.Member.Username));
     }
 }

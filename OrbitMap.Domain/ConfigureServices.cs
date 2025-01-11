@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,11 @@ public static class ConfigureServices
         });
         services.AddHangfire(config =>
         {
-            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"));
+            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"), new SqlServerStorageOptions()
+            {
+                EnableHeavyMigrations =true,
+                DisableGlobalLocks = true
+            });
         });
         services.AddHangfireServer();
         services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));

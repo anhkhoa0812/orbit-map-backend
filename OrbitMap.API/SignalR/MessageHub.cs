@@ -9,9 +9,7 @@ using OrbitMap.API.Payload.Response.Message;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Implement;
 using OrbitMap.API.Services.Interface;
-using OrbitMap.API.Validators;
 using OrbitMap.Domain.Entities;
-using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Repository.Interfaces;
 using Group = OrbitMap.Domain.Entities.Group;
@@ -22,16 +20,17 @@ namespace OrbitMap.API.SignalR;
 [Authorize]
 public class MessageHub : Hub
 {
-    private readonly IUnitOfWork<OrbitMapContext> _unitOfWork;
-    private readonly IHubContext<PresenceHub> _presenceHub;
-    private readonly IMapper _mapper;
-    private readonly PresenceTracker _tracker;
-    private readonly ILogger _logger;
     private readonly IConfiguration _config;
+    private readonly ILogger _logger;
+    private readonly IMapper _mapper;
     private readonly IOneSignalService _oneSignalService;
-    public MessageHub(IUnitOfWork<OrbitMapContext> unitOfWork, 
-        IMapper mapper, PresenceTracker tracker, 
-        IHubContext<PresenceHub> presenceHub, 
+    private readonly IHubContext<PresenceHub> _presenceHub;
+    private readonly PresenceTracker _tracker;
+    private readonly IUnitOfWork<OrbitMapContext> _unitOfWork;
+
+    public MessageHub(IUnitOfWork<OrbitMapContext> unitOfWork,
+        IMapper mapper, PresenceTracker tracker,
+        IHubContext<PresenceHub> presenceHub,
         ILogger logger, IConfiguration config, IOneSignalService oneSignalService)
     {
         _unitOfWork = unitOfWork;
@@ -46,13 +45,13 @@ public class MessageHub : Hub
     {
         var httpContext = Context.GetHttpContext();
         var otherUser = httpContext.Request.Query["user"].ToString();
-        if(otherUser.Equals("undefined")) throw new HubException("User not found");
+        if (otherUser.Equals("undefined")) throw new HubException("User not found");
         var groupName = GetGroupName(Context.User.Identity.Name, otherUser);
         _logger.Information($"Group name: {groupName}");
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
         var group = await AddToGroup(groupName);
         var messages = await GetMessageThread(Context.User.Identity.Name, otherUser);
-        
+
         await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
     }
 
@@ -68,9 +67,9 @@ public class MessageHub : Hub
     public async Task SendMessage(CreateMessageDto createMessageDto)
     {
         var username = Context.User.GetUsername();
-        if(username == createMessageDto.RecipientUsername.ToLower()) 
+        if (username == createMessageDto.RecipientUsername.ToLower())
             throw new HubException("You cannot send message to yourself");
-        var users = await _unitOfWork.GetRepository<User>().GetListAsync(
+        var users = await _unitOfWork.GetRepository<Member>().GetListAsync(
             predicate: u => u.Username.Equals(username) || u.Username.Equals(createMessageDto.RecipientUsername)
         );
         var sender = users.SingleOrDefault(x => x.Username.Equals(username));
@@ -91,11 +90,8 @@ public class MessageHub : Hub
             predicate: x => x.Name == groupName,
             include: x => x.Include(g => g.Connections)
         );
-        if (group.Connections.Any(x => x.UserName == recipient.Username))
-        {
-            message.DateRead = DateTime.UtcNow;
-        }
-        
+        if (group.Connections.Any(x => x.UserName == recipient.Username)) message.DateRead = DateTime.UtcNow;
+
         await _unitOfWork.GetRepository<Message>().InsertAsync(message);
         await UpdateLastMessageChat(message);
         if (await _unitOfWork.CommitAsync() > 0)
@@ -105,10 +101,12 @@ public class MessageHub : Hub
             if (connections != null)
             {
                 var user = _mapper.Map<UserDto>(sender);
-                await _presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", user, createMessageDto.Content);
-                string messageSend = $"😊 {sender.DisplayName} send a message to you";
+                await _presenceHub.Clients.Clients(connections)
+                    .SendAsync("NewMessageReceived", user, createMessageDto.Content);
+                var messageSend = $"😊 {sender.DisplayName} send a message to you";
                 BackgroundJob.Enqueue<NotificationService>(
-                    service => service.SendNotificationToUser(sender.DisplayName, createMessageDto.RecipientUsername, messageSend)
+                    service => service.SendNotificationToUser(sender.DisplayName, createMessageDto.RecipientUsername,
+                        messageSend)
                 );
             }
         }
@@ -117,8 +115,9 @@ public class MessageHub : Hub
     private async Task UpdateLastMessageChat(Message message)
     {
         var lastMessageFromDb = await _unitOfWork.GetRepository<LastMessageChat>().SingleOrDefaultAsync(
-            predicate: x => x.SenderUsername == message.SenderUsername && x.RecipientUsername == message.RecipientUsername ||
-                            x.SenderUsername == message.RecipientUsername && x.RecipientUsername == message.SenderUsername
+            predicate: x =>
+                (x.SenderUsername == message.SenderUsername && x.RecipientUsername == message.RecipientUsername) ||
+                (x.SenderUsername == message.RecipientUsername && x.RecipientUsername == message.SenderUsername)
         );
         if (lastMessageFromDb != null)
         {
@@ -134,7 +133,7 @@ public class MessageHub : Hub
         else
         {
             var groupName = GetGroupName(message.SenderUsername, message.RecipientUsername);
-            var lastMessageChat = new LastMessageChat()
+            var lastMessageChat = new LastMessageChat
             {
                 Content = message.Content,
                 MessageLastDate = message.CreatedDate,
@@ -152,6 +151,7 @@ public class MessageHub : Hub
             await _unitOfWork.GetRepository<LastMessageChat>().InsertAsync(lastMessageChat);
         }
     }
+
     //Tạo group name dựa trên tên của 2 người chat
     private string GetGroupName(string caller, string other)
     {
@@ -177,16 +177,16 @@ public class MessageHub : Hub
         }
 
         await _unitOfWork.GetRepository<Connection>().InsertAsync(connection);
-        bool isSuccessful = await _unitOfWork.CommitAsync() > 0;
+        var isSuccessful = await _unitOfWork.CommitAsync() > 0;
         if (isSuccessful) return group;
-        
+
         throw new HubException("Failed to join group");
     }
-    
+
     private async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
     {
         var messages = await _unitOfWork.GetRepository<Message>().GetListAsync(
-            selector: x => new MessageDto
+            x => new MessageDto
             {
                 Id = x.Id,
                 SenderId = x.Sender.Id,
@@ -201,19 +201,17 @@ public class MessageHub : Hub
                 MessageSent = x.CreatedDate,
                 DateRead = x.DateRead
             },
-            predicate: x => x.Recipient.Username == currentUsername && x.Sender.Username == recipientUsername || x.Recipient.Username == recipientUsername && x.Sender.Username == currentUsername,
-            orderBy: x => x.OrderBy(m => m.CreatedDate),
-            include: x => x.Include(m => m.Sender).Include(m => m.Recipient)
+            x => (x.Recipient.Username == currentUsername && x.Sender.Username == recipientUsername) ||
+                 (x.Recipient.Username == recipientUsername && x.Sender.Username == currentUsername),
+            x => x.OrderBy(m => m.CreatedDate),
+            x => x.Include(m => m.Sender).Include(m => m.Recipient)
         );
         var unreadMessages = messages.Where(m => m.DateRead == null && m.RecipientUsername == currentUsername).ToList();
         if (unreadMessages.Any())
-        {
             foreach (var mess in unreadMessages)
-            {
                 mess.DateRead = DateTime.UtcNow;
-            }
-        }
-        return messages; 
+
+        return messages;
     }
 
     private async Task<Group> RemoveFromMessageGroup()
@@ -227,10 +225,10 @@ public class MessageHub : Hub
             predicate: x => x.ConnectionId == Context.ConnectionId
         );
         _unitOfWork.GetRepository<Connection>().DeleteAsync(connection);
-        
-        bool isSuccessful = await _unitOfWork.CommitAsync() > 0;
+
+        var isSuccessful = await _unitOfWork.CommitAsync() > 0;
         if (isSuccessful) return group;
-        
+
         throw new HubException("Fail to remove from group");
     }
 }

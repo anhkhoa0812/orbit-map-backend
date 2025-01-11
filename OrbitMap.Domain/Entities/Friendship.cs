@@ -8,11 +8,10 @@ public class Friendship : EntityAuditBase<Guid>
 {
     public Guid RequesterId { get; set; }
     public Guid AddresseeId { get; set; }
-    
+
     public EFriendshipStatus Status { get; set; } // Pending, Accepted, Rejected - Change to ENUM
 
-    [ForeignKey(nameof(RequesterId))]
-    public virtual User Requester { get; set; } = null!;
-    [ForeignKey(nameof(AddresseeId))]
-    public virtual User Addressee { get; set; } = null!;
+    [ForeignKey(nameof(RequesterId))] public virtual Member Requester { get; set; } = null!;
+
+    [ForeignKey(nameof(AddresseeId))] public virtual Member Addressee { get; set; } = null!;
 }

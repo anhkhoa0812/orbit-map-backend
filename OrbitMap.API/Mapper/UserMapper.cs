@@ -6,11 +6,12 @@ using OrbitMap.Domain.Entities;
 
 namespace OrbitMap.API.Mapper;
 
-public class UserMapper: Profile
+public class UserMapper : Profile
 {
     public UserMapper()
     {
         CreateMap<User, UserDto>();
+        CreateMap<Member, UserDto>();
         CreateMap<LoginRequest, User>();
         CreateMap<User, LoginResponse>()
             .ForMember(opt => opt.Role, src => src.MapFrom(src => src.Role.Name));

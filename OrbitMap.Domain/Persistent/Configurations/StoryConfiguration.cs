@@ -10,7 +10,7 @@ public class StoryConfiguration : IEntityTypeConfiguration<Story>
     {
         builder.HasKey(x => x.Id);
         builder
-            .HasOne(u => u.User)
+            .HasOne(u => u.Member)
             .WithMany(m => m.Stories)
             .HasForeignKey(u => u.UserId)
             .OnDelete(DeleteBehavior.Restrict);
