@@ -11,7 +11,8 @@ public class TestController : BaseController<TestController>
 {
     private readonly ICraftMyPdfService _craftMyPdfService;
 
-    public TestController(ILogger logger, ICraftMyPdfService craftMyPdfService) : base(logger)
+    public TestController(ILogger logger, ICraftMyPdfService craftMyPdfService) :
+        base(logger)
     {
         _craftMyPdfService = craftMyPdfService;
     }

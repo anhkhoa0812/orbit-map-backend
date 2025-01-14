@@ -22,6 +22,8 @@ public static class ServiceExtensions
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IStoryService, StoryService>();
         services.AddScoped<ICraftMyPdfService, CraftMyPdfService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<INewsService, NewsService>();
         return services;
     }
 

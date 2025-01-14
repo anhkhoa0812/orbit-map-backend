@@ -30,6 +30,7 @@ public static class ConfigureServices
         services.AddHangfireServer();
         services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
         services.Configure<CraftMyPdfSettings>(configuration.GetSection("CraftMyPdf"));
+        services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
         return services;
     }
 

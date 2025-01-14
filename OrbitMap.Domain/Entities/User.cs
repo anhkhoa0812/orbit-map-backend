@@ -35,6 +35,7 @@ public class Member : User
 
     public bool IsPremium { get; set; }
 
+    public DateTime? ExpiredRankDate { get; set; }
     public DateTime LastActive { get; set; } = DateTime.Now;
 
     public ICollection<Message> MessagesSent { get; set; }
@@ -51,4 +52,16 @@ public class Member : User
     public virtual ICollection<Friendship>? FriendshipAddressees { get; set; }
 
     public virtual ICollection<PlayerIds> PlayerIds { get; set; } = new List<PlayerIds>();
+
+    public virtual ICollection<NewsReaction> NewsReactions { get; set; }
+}
+
+public class Business : User
+{
+    public Guid BusinessServiceId { get; set; }
+
+    [ForeignKey(nameof(BusinessServiceId))]
+    public BusinessService? BusinessService { get; set; }
+
+    public virtual ICollection<News> News { get; set; }
 }

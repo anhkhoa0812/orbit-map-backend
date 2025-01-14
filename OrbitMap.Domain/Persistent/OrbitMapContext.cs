@@ -24,6 +24,10 @@ public class OrbitMapContext : DbContext
     public DbSet<Connection> Connection { get; set; }
     public DbSet<Story> Story { get; set; }
     public DbSet<Member> Member { get; set; }
+    public DbSet<Business> Business { get; set; }
+    public DbSet<News> News { get; set; }
+    public DbSet<NewsReaction> NewsReaction { get; set; }
+    public DbSet<BusinessService> BusinessService { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

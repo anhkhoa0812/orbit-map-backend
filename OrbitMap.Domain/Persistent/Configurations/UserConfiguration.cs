@@ -50,7 +50,7 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
         {
             Id = Guid.Parse("cacf40b2-772b-4c20-a0c9-cd7359353622"),
             Username = "hoang",
-            PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("admin"))),
+            PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("hoang"))),
             PhoneNumber = "1234567890",
             CreatedDate = DateTime.Now,
             RoleId = Guid.Parse("d1cd3eef-3318-48e3-99f7-31a938fbd021"),

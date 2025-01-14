@@ -2,14 +2,10 @@ namespace OrbitMap.API.Constants;
 
 public static class ApiEndPointConstant
 {
-    static ApiEndPointConstant()
-    {
-    }
-
     public const string RootEndPoint = "/api";
     public const string ApiVersion = "/v1";
     public const string ApiEndpoint = RootEndPoint + ApiVersion;
-    
+
     public static class Authentication
     {
         public const string AuthenticationEndpoint = ApiEndpoint + "/account";
@@ -22,7 +18,9 @@ public static class ApiEndPointConstant
     public static class User
     {
         public const string UserEndpoint = ApiEndpoint + "/users";
+        public const string Rank = UserEndpoint + "/rank";
     }
+
     public static class OneSignal
     {
         public const string OneSignalEndpoint = ApiEndpoint + "/onesignal";
@@ -47,5 +45,17 @@ public static class ApiEndPointConstant
     {
         public const string StoryEndpoint = ApiEndpoint + "/stories";
         public const string StoryWithId = StoryEndpoint + "/{id}";
+    }
+
+    public static class Payment
+    {
+        public const string PaymentEndpoint = ApiEndpoint + "/payments";
+    }
+
+    public static class News
+    {
+        public const string NewsEndpoint = ApiEndpoint + "/news";
+        public const string NewsWithId = NewsEndpoint + "/{id}";
+        public const string NewsReaction = NewsEndpoint + "/reaction";
     }
 }

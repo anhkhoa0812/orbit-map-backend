@@ -14,6 +14,7 @@ namespace OrbitMap.API.Controllers;
 public class UserController : BaseController<UserController>
 {
     private readonly IUserService _userService;
+
     public UserController(ILogger logger, IUserService userService) : base(logger)
     {
         _userService = userService;
@@ -25,5 +26,13 @@ public class UserController : BaseController<UserController>
     {
         var result = await _userService.UpdateProfile(User.GetUsername(), request);
         return new ApiSuccessResult<UserDto>(result);
+    }
+
+    [HttpPatch(ApiEndPointConstant.User.Rank)]
+    [ProducesResponseType(typeof(ApiSuccessResult<bool>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<bool>> UpdateRank([FromBody] UpdateRankRequest request)
+    {
+        var result = await _userService.UpdateRank(User.GetUsername(), request);
+        return new ApiSuccessResult<bool>(result);
     }
 }

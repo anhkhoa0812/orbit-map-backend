@@ -2,10 +2,13 @@ using System.Linq.Expressions;
 using System.Security.Authentication;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Net.payOS;
 using OrbitMap.API.Payload.Request.User;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
+using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
@@ -18,15 +21,18 @@ namespace OrbitMap.API.Services.Implement;
 
 public class UserService : BaseService<UserService>, IUserService
 {
+    private readonly PayOSSettings _payOsSettings;
     private readonly IRedisService _redisService;
     private readonly IUploadService _uploadService;
 
     public UserService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
-        IHttpContextAccessor httpContextAccessor, IRedisService redisService, IUploadService uploadService) : base(
+        IHttpContextAccessor httpContextAccessor, IRedisService redisService, IUploadService uploadService,
+        IOptions<PayOSSettings> options) : base(
         unitOfWork, logger, mapper, httpContextAccessor)
     {
         _redisService = redisService;
         _uploadService = uploadService;
+        _payOsSettings = options.Value;
     }
 
     public async Task<LoginResponse> Login(LoginRequest loginRequest)
@@ -118,5 +124,30 @@ public class UserService : BaseService<UserService>, IUserService
         _unitOfWork.GetRepository<Member>().UpdateAsync(updatedUser);
         await _unitOfWork.CommitAsync();
         return _mapper.Map<UserDto>(updatedUser);
+    }
+
+    public async Task<bool> UpdateRank(string username, UpdateRankRequest updateRankRequest)
+    {
+        if (string.IsNullOrEmpty(username))
+            throw new AuthenticationException("Unauthorized");
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username)
+        );
+        if (member == null) throw new BadHttpRequestException("Unauthorized");
+        var payOs = new PayOS(_payOsSettings.ClientId, _payOsSettings.ApiKey, _payOsSettings.ChecksumKey);
+        var paymentLinkInformation = await payOs.getPaymentLinkInformation(updateRankRequest.OrderCode);
+        if (paymentLinkInformation == null)
+            throw new BadHttpRequestException("Không thể tìm thấy thông tin link thanh toán");
+        if (paymentLinkInformation.status.Equals(EPayOsStatus.PAID.ToString()))
+        {
+            member.IsPremium = true;
+            member.ExpiredRankDate = DateTime.Now.AddMonths(1);
+            _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+            var isSuccess = await _unitOfWork.CommitAsync() > 0;
+            if (!isSuccess) throw new Exception("Update rank failed");
+            return true;
+        }
+
+        return false;
     }
 }

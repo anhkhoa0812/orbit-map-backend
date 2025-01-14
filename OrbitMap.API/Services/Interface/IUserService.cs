@@ -7,8 +7,10 @@ namespace OrbitMap.API.Services.Interface;
 public interface IUserService
 {
     public Task<LoginResponse> Login(LoginRequest loginRequest);
-    
+
     public Task<LoginResponse> Register(RegisterRequest registerRequest);
-    
+
     public Task<UserDto> UpdateProfile(string username, UpdateUserRequest updateUserRequest);
+
+    public Task<bool> UpdateRank(string username, UpdateRankRequest updateRankRequest);
 }

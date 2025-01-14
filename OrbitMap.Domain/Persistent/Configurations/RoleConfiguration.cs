@@ -9,6 +9,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
     public void Configure(EntityTypeBuilder<Role> builder)
     {
         builder.HasKey(x => x.Id);
+
         builder.HasData(new Role
         {
             Id = Guid.Parse("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
