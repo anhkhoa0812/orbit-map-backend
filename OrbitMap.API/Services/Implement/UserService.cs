@@ -115,10 +115,10 @@ public class UserService : BaseService<UserService>, IUserService
         var currentUser = userList.SingleOrDefault(x => x.Username.Equals(username));
         if (currentUser == null) throw new BadHttpRequestException("User not found");
         var updatedUser = _mapper.Map(updateUserRequest, currentUser);
-        if (!string.IsNullOrEmpty(updateUserRequest.ImageBase64))
+        if (updateUserRequest.ImageFile != null)
         {
-            var imageUrl = await _uploadService.UploadImageAsync(updateUserRequest.ImageBase64);
-            updatedUser.AvatarUrl = imageUrl.SecureUrl.ToString();
+            var imageUrl = await _uploadService.UploadImageAsync(updateUserRequest.ImageFile);
+            updatedUser.AvatarUrl = imageUrl;
         }
 
         _unitOfWork.GetRepository<Member>().UpdateAsync(updatedUser);
@@ -134,20 +134,73 @@ public class UserService : BaseService<UserService>, IUserService
             predicate: x => x.Username.Equals(username)
         );
         if (member == null) throw new BadHttpRequestException("Unauthorized");
+        var transaction = await _unitOfWork.GetRepository<Transaction>().SingleOrDefaultAsync(
+            predicate: x => x.OrderCode.Equals(updateRankRequest.OrderCode)
+        );
+        if (transaction == null) throw new BadHttpRequestException("Transaction không tồn tại");
         var payOs = new PayOS(_payOsSettings.ClientId, _payOsSettings.ApiKey, _payOsSettings.ChecksumKey);
         var paymentLinkInformation = await payOs.getPaymentLinkInformation(updateRankRequest.OrderCode);
         if (paymentLinkInformation == null)
             throw new BadHttpRequestException("Không thể tìm thấy thông tin link thanh toán");
-        if (paymentLinkInformation.status.Equals(EPayOsStatus.PAID.ToString()))
+        switch (EnumUtil.ParseEnum<EPayOsStatus>(paymentLinkInformation.status))
         {
-            member.IsPremium = true;
-            member.ExpiredRankDate = DateTime.Now.AddMonths(1);
-            _unitOfWork.GetRepository<Member>().UpdateAsync(member);
-            var isSuccess = await _unitOfWork.CommitAsync() > 0;
-            if (!isSuccess) throw new Exception("Update rank failed");
-            return true;
+            case EPayOsStatus.PAID:
+                member.IsPremium = true;
+                member.ExpiredRankDate = DateTime.UtcNow.AddMonths(1);
+                transaction.Status = ETransactionStatus.Success;
+                _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+                _unitOfWork.GetRepository<Transaction>().UpdateAsync(transaction);
+                var isSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isSuccess) throw new Exception("Update rank failed");
+                break;
+            case EPayOsStatus.EXPIRED:
+            case EPayOsStatus.CANCELLED:
+                transaction.Status = ETransactionStatus.Failed;
+                _unitOfWork.GetRepository<Transaction>().UpdateAsync(transaction);
+                var isUpdateSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isUpdateSuccess) throw new Exception("Update transaction failed");
+                break;
+            default:
+                throw new Exception("Update rank failed");
         }
 
         return false;
+    }
+
+    public async Task<MemberDto> GetProfile(string username)
+    {
+        if (string.IsNullOrEmpty(username))
+            throw new AuthenticationException("Authentication failed");
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username)
+        );
+        if (member == null)
+            throw new AuthenticationException("Authentication failed");
+        var friendships = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+            selector: f => new Friendship()
+            {
+                Id = f.Id,
+                Status = f.Status,
+                Addressee = f.Addressee,
+                CreatedDate = f.CreatedDate,
+                RequesterId = f.RequesterId,
+                AddresseeId = f.AddresseeId,
+                Requester = f.Requester,
+                LastModifiedDate = f.LastModifiedDate
+            },
+            predicate:
+            f => (f.Requester.Username == username || f.Addressee.Username == username)
+                 && f.Status == EFriendshipStatus.Accepted,
+            include:
+            f => f.Include(f => f.Requester).Include(f => f.Addressee),
+            orderBy:
+            x => x.OrderBy(x => x.LastModifiedDate ?? x.CreatedDate)
+        );
+        var friends =
+            friendships.Select(f => f.Requester.Username == username ? f.Addressee : f.Requester);
+        var friendsDto = _mapper.Map<List<UserDto>>(friends);
+        var result = _mapper.Map<MemberDto>(member);
+        result.Friends = friendsDto;
+        return result;
     }
 }

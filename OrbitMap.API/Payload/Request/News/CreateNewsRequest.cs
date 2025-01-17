@@ -20,10 +20,10 @@ public class CreateNewsRequest
     [MaxLength(255, ErrorMessage = "BusinessAddress không được dài quá 255 ký tự")]
     public string BusinessAddress { get; set; }
 
-    public string? BannerBase64Image { get; set; }
-    [Required] public string BusinessBase64Image { get; set; }
+    public IFormFile? BannerImageFile { get; set; }
+    [Required] public IFormFile BusinessImageFile { get; set; }
     [Required] public ENewsType Type { get; set; }
-    public List<string>? Base64Images { get; set; }
+    public List<IFormFile>? NewsImageFiles { get; set; }
 
     [Required] [DateTimeChecking] public DateTime ExpirationDate { get; set; }
 }

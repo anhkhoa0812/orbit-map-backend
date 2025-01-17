@@ -6,6 +6,8 @@ using OrbitMap.API.Payload.Request.News;
 using OrbitMap.API.Payload.Response.News;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Validators;
+using OrbitMap.Domain.Enums;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -21,25 +23,25 @@ public class NewsController : BaseController<NewsController>
         _newsService = newsService;
     }
 
-    // [CustomAuthorize(ERoleEnum.Admin)]
+    [CustomAuthorize(ERoleEnum.Admin)]
     [HttpPost(ApiEndPointConstant.News.NewsEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<NewsResponse>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<NewsResponse>> CreateNewsAsync([FromBody] CreateNewsRequest request)
+    public async Task<ApiResult<NewsResponse>> CreateNewsAsync([FromForm] CreateNewsRequest request)
     {
         var result = await _newsService.CreateNewsAsync(request);
         return new ApiSuccessResult<NewsResponse>(result);
     }
 
     [HttpGet(ApiEndPointConstant.News.NewsEndpoint)]
-    [ProducesResponseType(typeof(ApiSuccessResult<List<NewsByTypeResponse>>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<List<NewsByTypeResponse>>> GetNewsByTypeAsync()
+    [ProducesResponseType(typeof(ApiSuccessResult<List<NewsWithReactionResponse>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<List<NewsWithReactionResponse>>> GetNewsAsync()
     {
         var username = User.GetUsername();
         var result = await _newsService.GetNewsAsync(username);
-        return new ApiSuccessResult<List<NewsByTypeResponse>>(result);
+        return new ApiSuccessResult<List<NewsWithReactionResponse>>(result);
     }
 
-    [HttpPost(ApiEndPointConstant.News.NewsReaction)]
+    [HttpPatch(ApiEndPointConstant.News.NewsReaction)]
     [ProducesResponseType(typeof(ApiSuccessResult<NewsReactionResponse>), StatusCodes.Status200OK)]
     public async Task<ApiResult<NewsReactionResponse>> UpdateNewsAsync([Required] Guid id,
         [FromBody] ReactNewsRequest request)

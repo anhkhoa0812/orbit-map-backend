@@ -8,21 +8,21 @@ namespace OrbitMap.Domain.Entities;
 public class News : EntityAuditBase<Guid>
 {
     [Required]
-    [Column(TypeName = "nvarchar(500)")]
+    [Column(TypeName = "varchar(500)")]
     public string Title { get; set; }
 
     [Required]
-    [Column(TypeName = "nvarchar(max)")]
+    [Column(TypeName = "varchar")]
     public string Content { get; set; }
 
     public List<string>? ImageUrls { get; set; }
 
     [Required]
-    [Column(TypeName = "nvarchar(255)")]
+    [Column(TypeName = "varchar(255)")]
     public string BusinessName { get; set; }
 
     [Required]
-    [Column(TypeName = "nvarchar(255)")]
+    [Column(TypeName = "varchar(255)")]
     public string BusinessAddress { get; set; }
 
     [Required] public string BusinessImage { get; set; }

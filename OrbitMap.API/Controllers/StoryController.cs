@@ -15,20 +15,22 @@ namespace OrbitMap.API.Controllers;
 public class StoryController : BaseController<StoryController>
 {
     private readonly IStoryService _storyService;
+
     public StoryController(ILogger logger, IStoryService storyService) : base(logger)
     {
         _storyService = storyService;
     }
-    
+
     [HttpPost(ApiEndPointConstant.Story.StoryEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<StoryResponse>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<StoryResponse>> AddStory([FromBody] [Required] CreateStoryRequest request)
+    public async Task<ApiResult<StoryResponse>> AddStory([FromForm] [Required] CreateStoryRequest request)
     {
         _logger.Information($"BEGIN: {nameof(AddStory)} - {DateTime.UtcNow}");
         var result = await _storyService.CreateStoryAsync(User.GetUsername(), request);
         _logger.Information($"END: {nameof(AddStory)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<StoryResponse>(result);
     }
+
     [HttpGet(ApiEndPointConstant.Story.StoryEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<List<StoryResponse>>), StatusCodes.Status200OK)]
     public async Task<ApiResult<List<StoryResponse>>> GetStories(string? searchTerm)
@@ -38,6 +40,7 @@ public class StoryController : BaseController<StoryController>
         _logger.Information($"END: {nameof(GetStories)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<List<StoryResponse>>(result);
     }
+
     [HttpDelete(ApiEndPointConstant.Story.StoryWithId)]
     [ProducesResponseType(typeof(ApiSuccessResult<NoContentResult>), StatusCodes.Status200OK)]
     public async Task<ApiResult<NoContentResult>> DeleteStory([Required] Guid id)

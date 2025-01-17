@@ -12,16 +12,15 @@ namespace OrbitMap.API.Services.Implement;
 
 public class LastMessageChatService : BaseService<LastMessageChatService>, ILastMessageChatService
 {
-    public LastMessageChatService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, mapper, httpContextAccessor)
+    public LastMessageChatService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, mapper, httpContextAccessor)
     {
     }
 
     public async Task<IPaginate<LastMessageChatResponse>> GetLastMessageChat(int page, int size, string currentUsername)
     {
         var lastMassageChatPaging = await _unitOfWork.GetRepository<LastMessageChat>().GetPagingListAsync(
-            predicate: x => x.GroupName.Contains(currentUsername),
-            include: x => x.Include(x => x.Sender)
-                .Include(x => x.Recipient),
+            predicate: x => x.LastMessageChatDocument.GroupName.Contains(currentUsername),
             page: page,
             size: size
         );

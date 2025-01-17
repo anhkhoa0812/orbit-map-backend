@@ -34,13 +34,13 @@ public class StoryService : BaseService<StoryService>, IStoryService
         if (user == null)
             throw new AuthenticationException("Unauthorized");
         var story = _mapper.Map<Story>(createStoryRequest);
-        if (!string.IsNullOrEmpty(createStoryRequest.ImageBase64))
+        if (createStoryRequest.ImageFile != null)
         {
-            var mediaUrl = await _uploadService.UploadImageAsync(createStoryRequest.ImageBase64);
-            story.MediaUrl = mediaUrl.SecureUrl.ToString();
+            story.MediaUrl = await _uploadService.UploadImageAsync(createStoryRequest.ImageFile);
+            // story.MediaUrl = mediaUrl.SecureUrl.ToString();
         }
 
-        story.ExpirationDate = DateTime.Now.AddHours(24);
+        story.ExpirationDate = DateTime.UtcNow.AddHours(24);
         story.UserId = user.Id;
         await _unitOfWork.GetRepository<Story>().InsertAsync(story);
 

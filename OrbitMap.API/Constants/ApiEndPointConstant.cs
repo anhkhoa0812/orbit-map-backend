@@ -19,6 +19,7 @@ public static class ApiEndPointConstant
     {
         public const string UserEndpoint = ApiEndpoint + "/users";
         public const string Rank = UserEndpoint + "/rank";
+        public const string Profile = UserEndpoint + "/profile";
     }
 
     public static class OneSignal

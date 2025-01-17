@@ -15,12 +15,12 @@ public static class ConfigureServices
     {
         services.AddDbContext<OrbitMapContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"),
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnectionString"),
                 builder => builder.MigrationsAssembly(typeof(OrbitMapContext).Assembly.FullName));
         });
         services.AddHangfire(config =>
         {
-            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnectionString"),
+            config.UseSqlServerStorage(configuration.GetConnectionString("Hangfire"),
                 new SqlServerStorageOptions
                 {
                     EnableHeavyMigrations = true,

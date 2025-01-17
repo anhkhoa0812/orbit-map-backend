@@ -12,6 +12,6 @@ public class LoginResponse
     public string? AvatarUrl { get; set; }
     public DateOnly? Birthday { get; set; }
     public bool IsPremium { get; set; }
-    public DateTime LastActive { get; set; } = DateTime.Now;
+    public DateTime LastActive { get; set; } = DateTime.UtcNow;
     public string Role { get; set; }
 }

@@ -28,7 +28,7 @@ public class FriendshipConfiguration : IEntityTypeConfiguration<Friendship>
             Id = Guid.Parse("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
             RequesterId = Guid.Parse("b1cc911f-7d57-4043-a716-c5249da61270"),
             AddresseeId = Guid.Parse("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-            CreatedDate = DateTime.Now,
+            CreatedDate = DateTime.UtcNow,
             Status = EFriendshipStatus.Accepted
         });
     }

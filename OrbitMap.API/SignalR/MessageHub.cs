@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using OrbitMap.API.Helper;
 using OrbitMap.API.Payload.Request.Message;
 using OrbitMap.API.Payload.Response.Message;
+using OrbitMap.API.Payload.Response.Story;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Implement;
 using OrbitMap.API.Services.Interface;
@@ -86,26 +87,34 @@ public class MessageHub : Hub
         var message = new Message
         {
             Id = Guid.NewGuid(),
-            SenderId = sender.Id,
-            RecipientId = recipient.Id,
-            SenderUsername = sender.Username,
-            RecipientUsername = recipient.Username,
-            Content = createMessageDto.Content,
-            StoryId = story?.Id,
-            CreatedDate = DateTime.UtcNow
+            MessageDocument = new MessageDocument()
+            {
+                SenderUsername = sender.Username,
+                RecipientUsername = recipient.Username,
+                StoryId = story?.Id,
+                CreatedDate = DateTime.UtcNow,
+                Content = createMessageDto.Content,
+            }
         };
         var groupName = GetGroupName(sender.Username, recipient.Username);
         var group = await _unitOfWork.GetRepository<Group>().SingleOrDefaultAsync(
             predicate: x => x.Name == groupName,
             include: x => x.Include(g => g.Connections)
         );
-        if (group.Connections.Any(x => x.UserName == recipient.Username)) message.DateRead = DateTime.UtcNow;
+        if (group.Connections.Any(x => x.UserName == recipient.Username))
+            message.MessageDocument.DateRead = DateTime.UtcNow;
 
         await _unitOfWork.GetRepository<Message>().InsertAsync(message);
         await UpdateLastMessageChat(message);
         if (await _unitOfWork.CommitAsync() > 0)
         {
-            await Clients.Group(groupName).SendAsync("NewMessage", _mapper.Map<MessageDto>(message));
+            var messageDto = _mapper.Map<MessageDto>(message);
+            if (story != null)
+            {
+                messageDto.Story = _mapper.Map<StoryResponse>(story);
+            }
+
+            await Clients.Group(groupName).SendAsync("NewMessage", messageDto);
             var connections = await _tracker.GetConnectionsForUser(createMessageDto.RecipientUsername);
             if (connections != null)
             {
@@ -113,7 +122,7 @@ public class MessageHub : Hub
                 await _presenceHub.Clients.Clients(connections)
                     .SendAsync("NewMessageReceived", member, createMessageDto.Content);
                 string messageSend = null;
-                if (message.StoryId.HasValue) messageSend = $"😊 {sender.DisplayName} reply your story";
+                if (message.MessageDocument.StoryId.HasValue) messageSend = $"😊 {sender.DisplayName} reply your story";
                 else
                     messageSend = $"😊 {sender.DisplayName} send a message to you";
                 BackgroundJob.Enqueue<NotificationService>(
@@ -128,13 +137,15 @@ public class MessageHub : Hub
     {
         var lastMessageFromDb = await _unitOfWork.GetRepository<LastMessageChat>().SingleOrDefaultAsync(
             predicate: x =>
-                (x.SenderUsername == message.SenderUsername && x.RecipientUsername == message.RecipientUsername) ||
-                (x.SenderUsername == message.RecipientUsername && x.RecipientUsername == message.SenderUsername)
+                (x.LastMessageChatDocument.SenderUsername == message.MessageDocument.SenderUsername &&
+                 x.LastMessageChatDocument.RecipientUsername == message.MessageDocument.RecipientUsername) ||
+                (x.LastMessageChatDocument.SenderUsername == message.MessageDocument.RecipientUsername &&
+                 x.LastMessageChatDocument.RecipientUsername == message.MessageDocument.SenderUsername)
         );
         if (lastMessageFromDb != null)
         {
-            lastMessageFromDb.Content = message.Content;
-            lastMessageFromDb.MessageLastDate = message.CreatedDate;
+            lastMessageFromDb.LastMessageChatDocument.Content = message.MessageDocument.Content;
+            lastMessageFromDb.LastMessageChatDocument.MessageLastDate = message.MessageDocument.CreatedDate;
             //neu user online thi isRead = true, mac dinh la false
             //if (await _presenceTracker.CheckUsernameIsOnline(message.RecipientUsername!))
             //    lastMessageFromDb.IsRead = true;
@@ -144,16 +155,19 @@ public class MessageHub : Hub
         }
         else
         {
-            var groupName = GetGroupName(message.SenderUsername, message.RecipientUsername);
+            var groupName = GetGroupName(message.MessageDocument.SenderUsername,
+                message.MessageDocument.RecipientUsername);
             var lastMessageChat = new LastMessageChat
             {
-                Content = message.Content,
-                MessageLastDate = message.CreatedDate,
-                SenderId = message.SenderId,
-                RecipientId = message.RecipientId,
-                SenderUsername = message.SenderUsername,
-                RecipientUsername = message.RecipientUsername,
-                GroupName = groupName
+                Id = Guid.NewGuid(),
+                LastMessageChatDocument = new LastMessageChatDocument
+                {
+                    Content = message.MessageDocument.Content,
+                    MessageLastDate = message.MessageDocument.CreatedDate,
+                    SenderUsername = message.MessageDocument.SenderUsername,
+                    RecipientUsername = message.MessageDocument.RecipientUsername,
+                    GroupName = groupName
+                }
             };
             //neu user online thi isRead = true, mac dinh la false
             //if (await _presenceTracker.CheckUsernameIsOnline(message.RecipientUsername!))
@@ -198,30 +212,38 @@ public class MessageHub : Hub
     private async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
     {
         var messages = await _unitOfWork.GetRepository<Message>().GetListAsync(
-            x => new MessageDto
+            selector: x => new MessageDto
             {
                 Id = x.Id,
-                SenderId = x.Sender.Id,
-                SenderUsername = x.Sender.Username,
-                SenderPhotoUrl = x.Sender.AvatarUrl,
-                SenderDisplayName = x.Sender.DisplayName,
-                RecipientId = x.RecipientId,
-                RecipientUsername = x.RecipientUsername,
-                RecipientDisplayName = x.Recipient.DisplayName,
-                RecipientPhotoUrl = x.Recipient.AvatarUrl,
-                Content = x.Content,
-                MessageSent = x.CreatedDate,
-                DateRead = x.DateRead
+                SenderUsername = x.MessageDocument.SenderUsername,
+                RecipientUsername = x.MessageDocument.RecipientUsername,
+                Content = x.MessageDocument.Content,
+                MessageSent = x.MessageDocument.CreatedDate,
+                DateRead = x.MessageDocument.DateRead,
+                StoryId = x.MessageDocument.StoryId ?? Guid.Empty
             },
-            x => (x.Recipient.Username == currentUsername && x.Sender.Username == recipientUsername) ||
-                 (x.Recipient.Username == recipientUsername && x.Sender.Username == currentUsername),
-            x => x.OrderBy(m => m.CreatedDate),
-            x => x.Include(m => m.Sender).Include(m => m.Recipient)
+            predicate: x =>
+                (x.MessageDocument.SenderUsername == currentUsername &&
+                 x.MessageDocument.RecipientUsername == recipientUsername) ||
+                (x.MessageDocument.RecipientUsername == recipientUsername &&
+                 x.MessageDocument.SenderUsername == currentUsername),
+            orderBy:
+            x => x.OrderBy(m => m.MessageDocument.CreatedDate)
         );
         var unreadMessages = messages.Where(m => m.DateRead == null && m.RecipientUsername == currentUsername).ToList();
         if (unreadMessages.Any())
             foreach (var mess in unreadMessages)
                 mess.DateRead = DateTime.UtcNow;
+        foreach (var message in messages)
+        {
+            if (message.StoryId != Guid.Empty)
+            {
+                var story = await _unitOfWork.GetRepository<Story>().SingleOrDefaultAsync(
+                    predicate: x => x.Id.Equals(message.StoryId)
+                );
+                message.Story = _mapper.Map<StoryResponse>(story);
+            }
+        }
 
         return messages;
     }

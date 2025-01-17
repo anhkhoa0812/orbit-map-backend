@@ -12,7 +12,7 @@ public class JwtUtil
     private JwtUtil()
     {
     }
-    
+
     public static string GenerateJwtToken(User user, Tuple<string, Guid> guidClaim)
     {
         JwtSecurityTokenHandler jwtHandler = new JwtSecurityTokenHandler();
@@ -27,9 +27,9 @@ public class JwtUtil
         };
         if (guidClaim != null) claims.Add(new Claim(guidClaim.Item1, guidClaim.Item2.ToString()));
         var expires = user.Role.Name.Equals(ERoleEnum.Admin.GetDescriptionFromEnum())
-            ? DateTime.Now.AddDays(15)
-            : DateTime.Now.AddDays(30);
-        var token = new JwtSecurityToken("OrbitMap", null, claims, notBefore: DateTime.Now, expires, credentials);
+            ? DateTime.UtcNow.AddDays(15)
+            : DateTime.UtcNow.AddDays(30);
+        var token = new JwtSecurityToken("OrbitMap", null, claims, notBefore: DateTime.UtcNow, expires, credentials);
         return jwtHandler.WriteToken(token);
     }
 }

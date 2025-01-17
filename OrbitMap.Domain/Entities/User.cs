@@ -11,7 +11,7 @@ public class User : EntityAuditBase<Guid>
     public string Username { get; set; }
 
     [Required]
-    [Column(TypeName = "nvarchar(255)")]
+    [Column(TypeName = "varchar(255)")]
     public string DisplayName { get; set; }
 
     [Required]
@@ -19,10 +19,10 @@ public class User : EntityAuditBase<Guid>
     public string PhoneNumber { get; set; }
 
     [Required]
-    [Column(TypeName = "nvarchar(max)")]
+    [Column(TypeName = "varchar")]
     public string PasswordHash { get; set; }
 
-    [Column(TypeName = "nvarchar(max)")] public string? AvatarUrl { get; set; }
+    [Column(TypeName = "varchar")] public string? AvatarUrl { get; set; }
 
     public Guid RoleId { get; set; }
 
@@ -36,15 +36,7 @@ public class Member : User
     public bool IsPremium { get; set; }
 
     public DateTime? ExpiredRankDate { get; set; }
-    public DateTime LastActive { get; set; } = DateTime.Now;
-
-    public ICollection<Message> MessagesSent { get; set; }
-
-    public ICollection<Message> MessagesReceived { get; set; }
-
-    public ICollection<LastMessageChat> LastMessageChatsSent { get; set; }
-
-    public ICollection<LastMessageChat> LastMessageChatsReceived { get; set; }
+    public DateTime LastActive { get; set; } = DateTime.UtcNow;
 
     public ICollection<Story> Stories { get; set; }
 
@@ -54,6 +46,8 @@ public class Member : User
     public virtual ICollection<PlayerIds> PlayerIds { get; set; } = new List<PlayerIds>();
 
     public virtual ICollection<NewsReaction> NewsReactions { get; set; }
+
+    public virtual ICollection<Transaction> Transactions { get; set; }
 }
 
 public class Business : User

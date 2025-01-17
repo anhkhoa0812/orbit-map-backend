@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrbitMap.Domain.Entities;
@@ -9,16 +10,9 @@ public class LastMessageChatConfiguration : IEntityTypeConfiguration<LastMessage
     public void Configure(EntityTypeBuilder<LastMessageChat> builder)
     {
         builder.HasKey(x => x.Id);
-        builder
-            .HasOne(u => u.Recipient)
-            .WithMany(m => m.LastMessageChatsReceived)
-            .HasForeignKey(u => u.RecipientId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder
-            .HasOne(u => u.Sender)
-            .WithMany(m => m.LastMessageChatsSent)
-            .HasForeignKey(u => u.SenderId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.LastMessageChatDocument).HasConversion(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+            v => JsonSerializer.Deserialize<LastMessageChatDocument>(v, (JsonSerializerOptions)null)
+        );
     }
 }

@@ -104,7 +104,7 @@ public class PresenceHub : Hub
             Username = username,
             Latitude = latitude,
             Longitude = longitude,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.UtcNow
         };
         var onlineFriends = await GetUsersOnlineAsync(username, await _tracker.GetOnlineUsers());
         foreach (var friend in onlineFriends)

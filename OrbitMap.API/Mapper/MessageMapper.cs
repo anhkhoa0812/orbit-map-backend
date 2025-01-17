@@ -8,7 +8,6 @@ public class MessageMapper : Profile
 {
     public MessageMapper()
     {
-        CreateMap<Message, MessageDto>()
-            .ForMember(dest => dest.Story, opt => opt.MapFrom(src => src.Story));
+        CreateMap<Message, MessageDto>();
     }
 }

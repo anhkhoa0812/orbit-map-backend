@@ -1,3 +1,5 @@
+using OrbitMap.Domain.Enums;
+
 namespace OrbitMap.API.Payload.Request.User;
 
 public class UpdateRankRequest

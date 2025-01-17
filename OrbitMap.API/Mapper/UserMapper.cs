@@ -17,5 +17,6 @@ public class UserMapper : Profile
             .ForMember(opt => opt.Role, src => src.MapFrom(src => src.Role.Name));
         CreateMap<RegisterRequest, User>();
         CreateMap<UpdateUserRequest, User>().IgnoreAllNonExisting();
+        CreateMap<Member, MemberDto>();
     }
 }

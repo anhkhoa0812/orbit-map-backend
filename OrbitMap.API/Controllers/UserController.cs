@@ -22,7 +22,7 @@ public class UserController : BaseController<UserController>
 
     [HttpPatch(ApiEndPointConstant.User.UserEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<UserDto>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<UserDto>> UpdateUser([FromBody] UpdateUserRequest request)
+    public async Task<ApiResult<UserDto>> UpdateUser([FromForm] UpdateUserRequest request)
     {
         var result = await _userService.UpdateProfile(User.GetUsername(), request);
         return new ApiSuccessResult<UserDto>(result);
@@ -34,5 +34,14 @@ public class UserController : BaseController<UserController>
     {
         var result = await _userService.UpdateRank(User.GetUsername(), request);
         return new ApiSuccessResult<bool>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.User.Profile)]
+    [ProducesResponseType(typeof(ApiSuccessResult<MemberDto>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<MemberDto>> GetProfile()
+    {
+        var username = User.GetUsername();
+        var result = await _userService.GetProfile(username);
+        return new ApiSuccessResult<MemberDto>(result);
     }
 }

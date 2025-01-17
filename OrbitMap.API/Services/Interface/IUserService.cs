@@ -13,4 +13,6 @@ public interface IUserService
     public Task<UserDto> UpdateProfile(string username, UpdateUserRequest updateUserRequest);
 
     public Task<bool> UpdateRank(string username, UpdateRankRequest updateRankRequest);
+
+    public Task<MemberDto> GetProfile(string username);
 }

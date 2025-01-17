@@ -13,14 +13,18 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog(SeriLogger.Configure);
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 Log.Information("Starting OrbitMap API up");
 try
 {
     builder.Services.AddCors(options =>
     {
         options.AddPolicy(name: CorsConstant.PolicyName,
-            policy => { policy.WithOrigins("http://localhost:3000")
-                .AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
+            policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                    .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+            });
     });
     builder.Services.AddControllers().AddJsonOptions(x =>
     {
@@ -35,10 +39,7 @@ try
     builder.Services.AddRedis(builder.Configuration);
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    builder.Services.AddSignalR(options =>
-    {
-        options.EnableDetailedErrors = true;
-    });
+    builder.Services.AddSignalR(options => { options.EnableDetailedErrors = true; });
     builder.Services.AddSingleton<PresenceTracker>();
     builder.Services.AddJwtValidation();
     builder.Services.AddConfigSwagger();
@@ -56,6 +57,7 @@ try
             c.InjectStylesheet("/assets/css/kkk.css");
         });
     }
+
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseCors(CorsConstant.PolicyName);
     app.UseHttpsRedirection();
@@ -63,6 +65,11 @@ try
     app.UseAuthorization();
     app.UseDefaultFiles();
     app.UseStaticFiles();
+    app.UseStaticFiles(new StaticFileOptions()
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Pictures"),
+        RequestPath = "/pictures"
+    });
     app.MapControllers();
     app.UseHangfireDashboard();
     app.UseHangfireServer();
@@ -82,6 +89,7 @@ catch (Exception ex)
     {
         throw;
     }
+
     Log.Fatal(ex, $"Unhandled: {ex.Message}");
 }
 finally

@@ -28,6 +28,8 @@ public class OrbitMapContext : DbContext
     public DbSet<News> News { get; set; }
     public DbSet<NewsReaction> NewsReaction { get; set; }
     public DbSet<BusinessService> BusinessService { get; set; }
+    // public DbSet<MessageTest> MessageTest { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,7 +51,7 @@ public class OrbitMapContext : DbContext
                 case EntityState.Added:
                     if (item.Entity is IDateTracking addedEntity)
                     {
-                        addedEntity.CreatedDate = DateTime.Now;
+                        addedEntity.CreatedDate = DateTime.UtcNow;
                         item.State = EntityState.Added;
                     }
 
@@ -58,7 +60,7 @@ public class OrbitMapContext : DbContext
                     if (item.Entity is IDateTracking modifiedEntity)
                     {
                         Entry(item.Entity).Property("Id").IsModified = false;
-                        modifiedEntity.LastModifiedDate = DateTime.Now;
+                        modifiedEntity.LastModifiedDate = DateTime.UtcNow;
                         item.State = EntityState.Modified;
                     }
 

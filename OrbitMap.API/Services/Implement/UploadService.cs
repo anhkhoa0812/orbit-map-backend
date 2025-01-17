@@ -1,6 +1,4 @@
 using AutoMapper;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.Domain.Configurations;
@@ -12,42 +10,51 @@ namespace OrbitMap.API.Services.Implement;
 
 public class UploadService : BaseService<UploadService>, IUploadService
 {
-    private readonly Cloudinary _cloudinary;
-    public UploadService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IOptions<CloudinarySettings> options) : base(unitOfWork, logger, mapper, httpContextAccessor)
+    public UploadService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger,
+        mapper, httpContextAccessor)
     {
-        var settings = options.Value;
-        _cloudinary = new Cloudinary(new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret));
     }
 
-    public Task<ImageUploadResult> UploadImageAsync(string base64Image)
+    public async Task<string> UploadImageAsync(IFormFile file)
     {
+        if (file == null || file.Length == 0)
+        {
+            throw new BadHttpRequestException("Không tìm thấy file");
+        }
+
+        var allowedExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+
+        if (!allowedExtensions.Contains(extension))
+            throw new InvalidOperationException(
+                "Chỉ các định dạng tệp txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, và .pptx được phép tải lên.");
+
         try
         {
-            if (!string.IsNullOrEmpty(base64Image))
+            using var fileStream = file.OpenReadStream();
+            byte[] fileBytes = new byte[file.Length];
+            await fileStream.ReadAsync(fileBytes, 0, (int)file.Length);
+            string directoryPath = @"C:\Pictures";
+            if (!Directory.Exists(directoryPath))
             {
-                base64Image = base64Image.Trim();
-                byte[] imageBytes = Convert.FromBase64String(base64Image);
-                using (var stream = new MemoryStream(imageBytes))
-                {
-                    var uploadParams = new ImageUploadParams()
-                    {
-                        File = new FileDescription(Guid.NewGuid().ToString(), stream),
-                        PublicId = Guid.NewGuid().ToString()
-                    };
-                    var uploadResult = _cloudinary.Upload(uploadParams);
-                    return Task.FromResult(uploadResult);
-                }
+                Directory.CreateDirectory(directoryPath);
             }
-            else
+
+            string fileName = $"{Guid.NewGuid()}{extension}";
+            string filePath = Path.Combine(@"C:\Pictures", fileName);
+
+            await using (var outputFileStream = new FileStream(filePath, FileMode.Create))
             {
-                _logger.Error("Image is empty");
-                throw new BadHttpRequestException("Image is empty");
+                await outputFileStream.WriteAsync(fileBytes, 0, fileBytes.Length);
             }
+
+            return $"https://api.stemlabs.store/pictures/{fileName}";
         }
         catch (Exception e)
         {
-            _logger.Error($"Failed to upload image to Cloudinary: {e.Message}");
-            throw new Exception("Failed to upload image to Cloudinary", e);
+            _logger.Error($"Failed to upload image: {e.Message}");
+            throw new Exception("Failed to upload image", e);
         }
     }
 }

@@ -30,27 +30,27 @@ public class NewsService : BaseService<NewsService>, INewsService
         news.Id = Guid.NewGuid();
         news.UsefulReactionCount = 0;
         news.UselessReactionCount = 0;
-        var uploadBusinessImageResult = await _uploadService.UploadImageAsync(request.BusinessBase64Image);
-        news.BusinessImage = uploadBusinessImageResult.SecureUrl.AbsoluteUri;
+        var uploadBusinessImageResult = await _uploadService.UploadImageAsync(request.BusinessImageFile);
+        news.BusinessImage = uploadBusinessImageResult;
         if (request.Type.Equals(ENewsType.HeaderBanner))
         {
-            if (string.IsNullOrEmpty(request.BannerBase64Image))
+            if (request.BannerImageFile != null)
             {
                 _logger.Error("Banner image is empty");
                 throw new BadHttpRequestException("Banner image is required");
             }
 
-            var uploadBannerImageResult = await _uploadService.UploadImageAsync(request.BannerBase64Image);
-            news.BannerImage = uploadBannerImageResult.SecureUrl.AbsoluteUri;
+            var uploadBannerImageResult = await _uploadService.UploadImageAsync(request.BannerImageFile!);
+            news.BannerImage = uploadBannerImageResult;
         }
 
-        if (request.Base64Images.Any())
+        if (request.NewsImageFiles != null && request.NewsImageFiles.Any())
         {
             var imageUrls = new List<string>();
-            foreach (var base64Image in request.Base64Images)
+            foreach (var newsImage in request.NewsImageFiles)
             {
-                var uploadImageResult = await _uploadService.UploadImageAsync(base64Image);
-                imageUrls.Add(uploadImageResult.SecureUrl.AbsoluteUri);
+                var uploadImageResult = await _uploadService.UploadImageAsync(newsImage);
+                imageUrls.Add(uploadImageResult);
             }
 
             news.ImageUrls = imageUrls;
@@ -68,12 +68,12 @@ public class NewsService : BaseService<NewsService>, INewsService
         return _mapper.Map<NewsResponse>(news);
     }
 
-    public async Task<List<NewsByTypeResponse>> GetNewsAsync(string username)
+    public async Task<List<NewsWithReactionResponse>> GetNewsAsync(string username)
     {
         if (string.IsNullOrEmpty(username))
             throw new AuthenticationException("Authentication failed");
         var newsList = await _unitOfWork.GetRepository<News>().GetListAsync(
-            selector: x => new News()
+            selector: x => new News
             {
                 Id = x.Id,
                 Title = x.Title,
@@ -92,62 +92,34 @@ public class NewsService : BaseService<NewsService>, INewsService
                 NewsReactions = x.NewsReactions
             },
             predicate:
-            x => x.ExpirationDate >= DateTime.Now,
+            x => x.ExpirationDate >= DateTime.UtcNow,
             include:
-            x => x.Include(x => x.NewsReactions)
+            x => x.Include(x => x.NewsReactions),
+            orderBy: x => x.OrderBy(x => x.Type).ThenByDescending(x => x.CreatedDate)
         );
-        List<NewsByTypeResponse> result = new();
-        var headerBannerNews = newsList
-            .Where(x => x.Type.Equals(ENewsType.HeaderBanner))
-            .OrderByDescending(x => x.CreatedDate)
-            .ToList();
-        if (headerBannerNews.Any())
+        var result = _mapper.Map<List<NewsWithReactionResponse>>(newsList);
+        foreach (var news in newsList)
         {
-            var headerBannerNewsResults = _mapper.Map<List<NewsWithReactionResponse>>(headerBannerNews);
+            var matchingNews = result.FirstOrDefault(x => x.Id.Equals(news.Id));
+            if (matchingNews == null) continue;
 
-            result.Add(new NewsByTypeResponse
+            var userReaction = news.NewsReactions.FirstOrDefault(x => x.Username.Equals(username));
+            if (userReaction != null)
             {
-                Type = ENewsType.HeaderBanner,
-                News = headerBannerNewsResults
-            });
-        }
-
-        var bannerOnPageNews = newsList
-            .Where(x => x.Type.Equals(ENewsType.BannersOnPage))
-            .OrderByDescending(x => x.CreatedDate)
-            .ToList();
-        if (bannerOnPageNews.Any())
-        {
-            var bannerOnPageNewsResult = _mapper.Map<List<NewsWithReactionResponse>>(bannerOnPageNews);
-            foreach (var bannerOnPageNew in bannerOnPageNews)
-            {
-                var matchingNews = bannerOnPageNewsResult.FirstOrDefault(x => x.Id.Equals(bannerOnPageNew.Id));
-                if (matchingNews == null) continue;
-
-                var userReaction = bannerOnPageNew.NewsReactions.FirstOrDefault(x => x.Username.Equals(username));
-                if (userReaction != null)
+                if (userReaction.ReactionType == EReactionType.Useful)
                 {
-                    if (userReaction.ReactionType == EReactionType.Useful)
-                    {
-                        matchingNews.IsUseful = true;
-                    }
-                    else if (userReaction.ReactionType == EReactionType.Useless)
-                    {
-                        matchingNews.IsUseless = true;
-                    }
-                    else
-                    {
-                        matchingNews.IsUseful = false;
-                        matchingNews.IsUseless = false;
-                    }
+                    matchingNews.IsUseful = true;
+                }
+                else if (userReaction.ReactionType == EReactionType.Useless)
+                {
+                    matchingNews.IsUseless = true;
+                }
+                else
+                {
+                    matchingNews.IsUseful = false;
+                    matchingNews.IsUseless = false;
                 }
             }
-
-            result.Add(new NewsByTypeResponse
-            {
-                Type = ENewsType.BannersOnPage,
-                News = bannerOnPageNewsResult
-            });
         }
 
         return result;

@@ -6,9 +6,11 @@ using Net.payOS.Types;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
+using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
+using Transaction = OrbitMap.Domain.Entities.Transaction;
 
 namespace OrbitMap.API.Services.Implement;
 
@@ -54,7 +56,28 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
         {
             var createPayment = await payOs.createPaymentLink(paymentData);
             var result = createPayment.checkoutUrl;
-            return result;
+            if (result != null)
+            {
+                var transaction = new Transaction
+                {
+                    Id = Guid.NewGuid(),
+                    OrderCode = createPayment.orderCode,
+                    Amount = 39000,
+                    MemberId = member.Id,
+                    Status = ETransactionStatus.Pending,
+                    Description = "Đăng ký gói hội viên Premium"
+                };
+                await _unitOfWork.GetRepository<Transaction>().InsertAsync(transaction);
+                var isSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isSuccess)
+                {
+                    return null;
+                }
+
+                return result;
+            }
+
+            return null;
         }
         catch (Exception ex)
         {

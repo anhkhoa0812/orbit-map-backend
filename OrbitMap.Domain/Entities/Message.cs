@@ -3,20 +3,18 @@ using Contracts.Domains;
 
 namespace OrbitMap.Domain.Entities;
 
-public class Message : EntityAuditBase<Guid>
+public class Message : EntityBase<Guid>
 {
-    public Guid SenderId { get; set; }
+    [Column(TypeName = "jsonb")] public MessageDocument MessageDocument { get; set; }
+}
+
+public class MessageDocument
+{
     public string SenderUsername { get; set; }
-    public Member Sender { get; set; }
-    public Guid RecipientId { get; set; }
-
     public string RecipientUsername { get; set; }
-    public Member Recipient { get; set; }
-
     public string Content { get; set; }
     public DateTime? DateRead { get; set; }
-
     public Guid? StoryId { get; set; }
-
-    [ForeignKey(nameof(StoryId))] public Story? Story { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? LastModifiedDate { get; set; }
 }
