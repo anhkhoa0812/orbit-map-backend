@@ -16,6 +16,7 @@ public class AuthenticationController : BaseController<AuthenticationController>
 {
     private readonly IUserService _userService;
     private readonly ISmsService _smsService;
+
     public AuthenticationController(ILogger logger, IUserService userService, ISmsService smsService) : base(logger)
     {
         _userService = userService;
@@ -23,7 +24,7 @@ public class AuthenticationController : BaseController<AuthenticationController>
     }
 
     [HttpPost(ApiEndPointConstant.Authentication.Login)]
-    [ProducesResponseType(typeof(ApiResult<LoginResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiSuccessResult<LoginResponse>), StatusCodes.Status200OK)]
     public async Task<ApiResult<LoginResponse>> Login([FromBody] [Required] LoginRequest loginRequest)
     {
         _logger.Information($"BEGIN: {nameof(Login)} - {DateTime.UtcNow}");
@@ -31,8 +32,9 @@ public class AuthenticationController : BaseController<AuthenticationController>
         _logger.Information($"END: {nameof(Login)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<LoginResponse>(result);
     }
+
     [HttpPost(ApiEndPointConstant.Authentication.SendOtp)]
-    [ProducesResponseType(typeof(ApiResult<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiSuccessResult<string>), StatusCodes.Status200OK)]
     public async Task<ApiResult<string>> SendOtp([FromBody] [Required] SendOtpRequest sendOtpRequest)
     {
         _logger.Information($"BEGIN: {nameof(SendOtp)} - {DateTime.UtcNow}");
@@ -40,13 +42,25 @@ public class AuthenticationController : BaseController<AuthenticationController>
         _logger.Information($"END: {nameof(SendOtp)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<string>(result);
     }
+
     [HttpPost(ApiEndPointConstant.Authentication.Register)]
-    [ProducesResponseType(typeof(ApiResult<LoginResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiSuccessResult<LoginResponse>), StatusCodes.Status200OK)]
     public async Task<ApiResult<LoginResponse>> Register([FromBody] [Required] RegisterRequest registerRequest)
     {
         _logger.Information($"BEGIN: {nameof(Register)} - {DateTime.UtcNow}");
         var result = await _userService.Register(registerRequest);
         _logger.Information($"END: {nameof(Register)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<LoginResponse>(result);
+    }
+
+    [HttpPatch(ApiEndPointConstant.Authentication.ForgotPassword)]
+    [ProducesResponseType(typeof(ApiSuccessResult<MemberDto>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<MemberDto>> ForgotPassword(
+        [FromBody] [Required] ForgetPasswordRequest forgetPasswordRequest)
+    {
+        _logger.Information($"BEGIN: {nameof(ForgotPassword)} - {DateTime.UtcNow}");
+        var result = await _userService.ForgetPassword(forgetPasswordRequest);
+        _logger.Information($"END: {nameof(ForgotPassword)} - {DateTime.UtcNow}");
+        return new ApiSuccessResult<MemberDto>(result);
     }
 }

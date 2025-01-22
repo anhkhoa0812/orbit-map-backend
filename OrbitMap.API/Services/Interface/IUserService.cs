@@ -15,4 +15,8 @@ public interface IUserService
     public Task<bool> UpdateRank(string username, UpdateRankRequest updateRankRequest);
 
     public Task<MemberDto> GetProfile(string username);
+
+    public Task<MemberDto> ChangePassword(string username, ChangePasswordRequest changePasswordRequest);
+
+    public Task<MemberDto> ForgetPassword(ForgetPasswordRequest forgetPasswordRequest);
 }

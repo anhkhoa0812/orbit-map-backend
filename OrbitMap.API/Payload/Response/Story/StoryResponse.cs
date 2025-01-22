@@ -1,3 +1,7 @@
+using System.Globalization;
+using Humanizer;
+using Humanizer.Localisation;
+
 namespace OrbitMap.API.Payload.Response.Story;
 
 public class StoryResponse
@@ -11,4 +15,14 @@ public class StoryResponse
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public DateTime ExpirationDate { get; set; }
+    public string AvatarUrl { get; set; }
+
+    public string HumanizedTime => DateTime.UtcNow.AddHours(CreatedDate.Hour - DateTime.UtcNow.Hour).Humanize(
+        culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN"))
+    ).Transform(To.SentenceCase);
+    // public string HumanizedTimes => (DateTime.UtcNow - CreatedDate).Humanize(
+    //     precision: 1,
+    //     culture: System.Globalization.CultureInfo.GetCultureInfo("vi-VN"),
+    //     TimeUnit.Day
+    // );
 }

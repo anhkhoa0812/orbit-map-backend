@@ -2,7 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Helper;
+using OrbitMap.API.Payload.Request.Message;
 using OrbitMap.API.Payload.Request.Story;
+using OrbitMap.API.Payload.Response.Message;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Payload.Response.Story;
 using OrbitMap.API.Services.Interface;
@@ -23,7 +25,7 @@ public class StoryController : BaseController<StoryController>
 
     [HttpPost(ApiEndPointConstant.Story.StoryEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<StoryResponse>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<StoryResponse>> AddStory([FromForm] [Required] CreateStoryRequest request)
+    public async Task<ApiResult<StoryResponse>> AddStory([FromForm] CreateStoryRequest request)
     {
         _logger.Information($"BEGIN: {nameof(AddStory)} - {DateTime.UtcNow}");
         var result = await _storyService.CreateStoryAsync(User.GetUsername(), request);
@@ -49,5 +51,25 @@ public class StoryController : BaseController<StoryController>
         await _storyService.DeleteStoryAsync(User.GetUsername(), id);
         _logger.Information($"END: {nameof(DeleteStory)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<NoContentResult>(NoContent());
+    }
+
+    [HttpPost(ApiEndPointConstant.Story.ReplyStory)]
+    [ProducesResponseType(typeof(ApiSuccessResult<MessageDto>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<MessageDto>> ReplyStory([FromBody] CreateMessageDto request)
+    {
+        _logger.Information($"BEGIN: {nameof(ReplyStory)} - {DateTime.UtcNow}");
+        var result = await _storyService.ReplyStoryAsync(User.GetUsername(), request);
+        _logger.Information($"END: {nameof(ReplyStory)} - {DateTime.UtcNow}");
+        return new ApiSuccessResult<MessageDto>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.Story.StoryByMonth)]
+    [ProducesResponseType(typeof(ApiSuccessResult<List<StoryByMonthResponse>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<List<StoryByMonthResponse>>> GetStoriesByMonth()
+    {
+        _logger.Information($"BEGIN: {nameof(GetStoriesByMonth)} - {DateTime.UtcNow}");
+        var result = await _storyService.GetStoriesByMonthAsync(User.GetUsername());
+        _logger.Information($"END: {nameof(GetStoriesByMonth)} - {DateTime.UtcNow}");
+        return new ApiSuccessResult<List<StoryByMonthResponse>>(result);
     }
 }

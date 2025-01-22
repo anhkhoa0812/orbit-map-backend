@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Helper;
@@ -42,6 +43,17 @@ public class UserController : BaseController<UserController>
     {
         var username = User.GetUsername();
         var result = await _userService.GetProfile(username);
+        return new ApiSuccessResult<MemberDto>(result);
+    }
+
+    [HttpPatch(ApiEndPointConstant.User.UpdatePassword)]
+    [ProducesResponseType(typeof(ApiSuccessResult<MemberDto>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<MemberDto>> UpdatePassword([Required] [FromBody] ChangePasswordRequest request)
+    {
+        var username = User.GetUsername();
+        _logger.Information($"BEGIN: {nameof(UpdatePassword)} - {DateTime.UtcNow}");
+        var result = await _userService.ChangePassword(username, request);
+        _logger.Information($"END: {nameof(UpdatePassword)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<MemberDto>(result);
     }
 }

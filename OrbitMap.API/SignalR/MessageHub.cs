@@ -105,10 +105,19 @@ public class MessageHub : Hub
             message.MessageDocument.DateRead = DateTime.UtcNow;
 
         await _unitOfWork.GetRepository<Message>().InsertAsync(message);
-        await UpdateLastMessageChat(message);
+        await UpdateLastMessageChat(message, sender, recipient);
         if (await _unitOfWork.CommitAsync() > 0)
         {
-            var messageDto = _mapper.Map<MessageDto>(message);
+            var messageDto = new MessageDto()
+            {
+                Id = message.Id,
+                SenderUsername = message.MessageDocument.SenderUsername,
+                RecipientUsername = message.MessageDocument.RecipientUsername,
+                Content = message.MessageDocument.Content,
+                MessageSent = message.MessageDocument.CreatedDate,
+                DateRead = message.MessageDocument.DateRead,
+                StoryId = message.MessageDocument.StoryId ?? Guid.Empty,
+            };
             if (story != null)
             {
                 messageDto.Story = _mapper.Map<StoryResponse>(story);
@@ -133,7 +142,7 @@ public class MessageHub : Hub
         }
     }
 
-    private async Task UpdateLastMessageChat(Message message)
+    private async Task UpdateLastMessageChat(Message message, Member sender, Member recipient)
     {
         var lastMessageFromDb = await _unitOfWork.GetRepository<LastMessageChat>().SingleOrDefaultAsync(
             predicate: x =>
@@ -166,7 +175,9 @@ public class MessageHub : Hub
                     MessageLastDate = message.MessageDocument.CreatedDate,
                     SenderUsername = message.MessageDocument.SenderUsername,
                     RecipientUsername = message.MessageDocument.RecipientUsername,
-                    GroupName = groupName
+                    GroupName = groupName,
+                    SenderAvatarUrl = sender.AvatarUrl,
+                    RecipientAvatarUrl = recipient.AvatarUrl
                 }
             };
             //neu user online thi isRead = true, mac dinh la false
@@ -223,8 +234,8 @@ public class MessageHub : Hub
                 StoryId = x.MessageDocument.StoryId ?? Guid.Empty
             },
             predicate: x =>
-                (x.MessageDocument.SenderUsername == currentUsername &&
-                 x.MessageDocument.RecipientUsername == recipientUsername) ||
+                (x.MessageDocument.RecipientUsername == currentUsername &&
+                 x.MessageDocument.SenderUsername == recipientUsername) ||
                 (x.MessageDocument.RecipientUsername == recipientUsername &&
                  x.MessageDocument.SenderUsername == currentUsername),
             orderBy:

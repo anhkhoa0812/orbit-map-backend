@@ -203,4 +203,42 @@ public class UserService : BaseService<UserService>, IUserService
         result.Friends = friendsDto;
         return result;
     }
+
+    public async Task<MemberDto> ChangePassword(string username, ChangePasswordRequest changePasswordRequest)
+    {
+        if (string.IsNullOrEmpty(username))
+            throw new AuthenticationException("Unauthorized");
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username)
+        );
+        if (member == null) throw new BadHttpRequestException("User not found");
+        if (!PasswordUtil.HashPassword(changePasswordRequest.OldPassword).Equals(member.PasswordHash))
+            throw new BadHttpRequestException("Mật khẩu cũ không chính xác");
+        member.PasswordHash = PasswordUtil.HashPassword(changePasswordRequest.NewPassword);
+        _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+            throw new Exception("Change password failed");
+        return _mapper.Map<MemberDto>(member);
+    }
+
+    public async Task<MemberDto> ForgetPassword(ForgetPasswordRequest forgetPasswordRequest)
+    {
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.PhoneNumber.Equals(forgetPasswordRequest.PhoneNumber)
+        );
+        if (member == null) throw new BadHttpRequestException("Không tìm thấy người dùng");
+        var key = member.PhoneNumber;
+        var existingOtp = await _redisService.GetStringAsync(key);
+        if (string.IsNullOrEmpty(existingOtp))
+            throw new BadHttpRequestException("Không tìm thấy mã OTP");
+        if (!existingOtp.Equals(forgetPasswordRequest.Otp))
+            throw new BadHttpRequestException("Mã OTP không chính xác");
+        member.PasswordHash = PasswordUtil.HashPassword(forgetPasswordRequest.NewPassword);
+        _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+            throw new Exception("Quên mật khẩu thất bại");
+        return _mapper.Map<MemberDto>(member);
+    }
 }

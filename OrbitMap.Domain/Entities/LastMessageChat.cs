@@ -12,6 +12,8 @@ public class LastMessageChatDocument
 {
     public string SenderUsername { get; set; }
     public string RecipientUsername { get; set; }
+    public string? SenderAvatarUrl { get; set; }
+    public string? RecipientAvatarUrl { get; set; }
     public string Content { get; set; }
     public DateTime MessageLastDate { get; set; }
 

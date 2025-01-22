@@ -31,6 +31,8 @@ public static class ConfigureServices
         services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
         services.Configure<CraftMyPdfSettings>(configuration.GetSection("CraftMyPdf"));
         services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
+        services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+        services.Configure<AwsSettings>(configuration.GetSection("Aws"));
         return services;
     }
 

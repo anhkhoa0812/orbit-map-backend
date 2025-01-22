@@ -56,6 +56,4 @@ public class Business : User
 
     [ForeignKey(nameof(BusinessServiceId))]
     public BusinessService? BusinessService { get; set; }
-
-    public virtual ICollection<News> News { get; set; }
 }

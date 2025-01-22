@@ -1,11 +1,10 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Hangfire;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Extensions;
-using OrbitMap.API.Helper;
 using OrbitMap.API.Logger;
 using OrbitMap.API.Middlewares;
-using OrbitMap.API.Services.Implement;
 using OrbitMap.API.SignalR;
 using OrbitMap.Domain;
 using OrbitMap.Repository;
@@ -69,6 +68,11 @@ try
     {
         FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Pictures"),
         RequestPath = "/pictures"
+    });
+    app.UseStaticFiles(new StaticFileOptions()
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Videos"),
+        RequestPath = "/videos"
     });
     app.MapControllers();
     app.UseHangfireDashboard();
