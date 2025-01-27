@@ -85,4 +85,74 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
             throw new Exception("Failed to create payment");
         }
     }
+
+    public async Task<string> CheckoutBusiness(string username, EBusinessService businessServiceEnum)
+    {
+        if (string.IsNullOrEmpty(username))
+            throw new AuthenticationException("Authentication failed");
+        var business = await _unitOfWork.GetRepository<Business>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username)
+        );
+        if (business == null)
+        {
+            throw new BadHttpRequestException("Business not found");
+        }
+
+        var businessService = await _unitOfWork.GetRepository<Domain.Entities.BusinessService>().SingleOrDefaultAsync(
+            predicate: x => x.BusinessServiceType.Equals(businessServiceEnum)
+        );
+        if (businessService == null)
+        {
+            throw new BadHttpRequestException("Business service not found");
+        }
+
+        var payOs = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
+        var orderCode = int.Parse(DateTimeOffset.Now.ToString("ffffff"));
+        var itemData = new List<ItemData>
+        {
+            new($"Đăng ký dịch vụ {businessServiceEnum.ToString()}", 1, businessService.Price)
+        };
+        var paymentData = new PaymentData(
+            orderCode,
+            businessService.Price,
+            "Thanh toán đơn hàng",
+            itemData,
+            "https://stemlabs.store/cancel",
+            "https://stemlabs.store/success",
+            buyerName: business.DisplayName,
+            buyerPhone: business.PhoneNumber,
+            expiredAt: ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds()
+        );
+        try
+        {
+            var createPayment = await payOs.createPaymentLink(paymentData);
+            var result = createPayment.checkoutUrl;
+            if (result != null)
+            {
+                var transaction = new Transaction
+                {
+                    Id = Guid.NewGuid(),
+                    OrderCode = createPayment.orderCode,
+                    Amount = businessService.Price,
+                    Status = ETransactionStatus.Pending,
+                    Description = $"Đăng ký dịch vụ {businessServiceEnum.ToString()}",
+                };
+                await _unitOfWork.GetRepository<Transaction>().InsertAsync(transaction);
+                var isSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isSuccess)
+                {
+                    return null;
+                }
+
+                return result;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Failed to create payment: {ex.Message}");
+            throw new Exception("Failed to create payment");
+        }
+    }
 }

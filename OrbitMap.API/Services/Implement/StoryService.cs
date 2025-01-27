@@ -73,6 +73,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
             throw new Exception("Failed to create story");
         var result = _mapper.Map<StoryResponse>(story);
         result.Username = user.Username;
+        result.AvatarUrl = user.AvatarUrl;
         return result;
     }
 
@@ -151,7 +152,6 @@ public class StoryService : BaseService<StoryService>, IStoryService
         );
         if (story == null)
             throw new BadHttpRequestException("Story not found");
-
         var message = new Message
         {
             Id = Guid.NewGuid(),

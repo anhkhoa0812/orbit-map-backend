@@ -38,16 +38,16 @@ public class Member : User
     public DateTime? ExpiredRankDate { get; set; }
     public DateTime LastActive { get; set; } = DateTime.UtcNow;
 
-    public ICollection<Story> Stories { get; set; }
+    public ICollection<Story>? Stories { get; set; }
 
     public virtual ICollection<Friendship>? FriendshipRequests { get; set; }
     public virtual ICollection<Friendship>? FriendshipAddressees { get; set; }
 
-    public virtual ICollection<PlayerIds> PlayerIds { get; set; } = new List<PlayerIds>();
+    public virtual ICollection<SubscriptionIds>? SubscriptionIds { get; set; } = new List<SubscriptionIds>();
 
-    public virtual ICollection<NewsReaction> NewsReactions { get; set; }
+    public virtual ICollection<NewsReaction>? NewsReactions { get; set; }
 
-    public virtual ICollection<Transaction> Transactions { get; set; }
+    public virtual ICollection<Transaction>? Transactions { get; set; }
 }
 
 public class Business : User

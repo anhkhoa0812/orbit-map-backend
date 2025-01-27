@@ -15,7 +15,7 @@ public class StoryResponse
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public DateTime ExpirationDate { get; set; }
-    public string AvatarUrl { get; set; }
+    public string? AvatarUrl { get; set; }
 
     public string HumanizedTime => DateTime.UtcNow.AddHours(CreatedDate.Hour - DateTime.UtcNow.Hour).Humanize(
         culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN"))

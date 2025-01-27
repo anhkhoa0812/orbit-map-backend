@@ -64,21 +64,22 @@ try
     app.UseAuthorization();
     app.UseDefaultFiles();
     app.UseStaticFiles();
-    app.UseStaticFiles(new StaticFileOptions()
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Pictures"),
-        RequestPath = "/pictures"
-    });
-    app.UseStaticFiles(new StaticFileOptions()
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Videos"),
-        RequestPath = "/videos"
-    });
+    // app.UseStaticFiles(new StaticFileOptions()
+    // {
+    //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Pictures"),
+    //     RequestPath = "/pictures"
+    // });
+    // app.UseStaticFiles(new StaticFileOptions()
+    // {
+    //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(@"C:\Videos"),
+    //     RequestPath = "/videos"
+    // });
     app.MapControllers();
     app.UseHangfireDashboard();
     app.UseHangfireServer();
     app.MapHub<PresenceHub>("hubs/presence");
     app.MapHub<MessageHub>("hubs/message");
+    app.MapHub<DeviceHub>("hubs/device");
     // RecurringJob.AddOrUpdate<StoryCleanupService>(
     //     "remove-expired-stories",
     //     job => job.RemoveExpiredStories(),

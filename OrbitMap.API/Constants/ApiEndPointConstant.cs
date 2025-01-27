@@ -27,7 +27,7 @@ public static class ApiEndPointConstant
     {
         public const string OneSignalEndpoint = ApiEndpoint + "/onesignal";
         public const string SendNotification = OneSignalEndpoint + "/send";
-        public const string AddPlayerId = OneSignalEndpoint + "/addplayerId";
+        public const string SubscriptionId = OneSignalEndpoint + "/subscriptionId/{subscriptionId}";
     }
 
     public static class Friendship
@@ -61,5 +61,10 @@ public static class ApiEndPointConstant
         public const string NewsEndpoint = ApiEndpoint + "/news";
         public const string NewsWithId = NewsEndpoint + "/{id}";
         public const string NewsReaction = NewsEndpoint + "/reaction";
+    }
+
+    public static class Business
+    {
+        public const string BusinessEndpoint = ApiEndpoint + "/business";
     }
 }

@@ -18,5 +18,7 @@ public class UserMapper : Profile
         CreateMap<RegisterRequest, User>();
         CreateMap<UpdateUserRequest, User>().IgnoreAllNonExisting();
         CreateMap<Member, MemberDto>();
+        CreateMap<CreateBusinessRequest, Business>();
+        CreateMap<Business, BusinessResponse>();
     }
 }

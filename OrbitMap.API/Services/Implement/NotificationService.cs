@@ -11,18 +11,21 @@ public class NotificationService : BaseService<NotificationService>
 {
     private readonly IOneSignalService _oneSignalService;
     private readonly IConfiguration _config;
-    public NotificationService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IOneSignalService oneSignalService, IConfiguration config) : base(unitOfWork, logger, mapper, httpContextAccessor)
+
+    public NotificationService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor, IOneSignalService oneSignalService, IConfiguration config) : base(
+        unitOfWork, logger, mapper, httpContextAccessor)
     {
         _oneSignalService = oneSignalService;
         _config = config;
     }
-    
+
     public async Task SendNotificationToUser(string senderUsername, string recipientUsername, string message)
     {
-        var toPlayerIds = await _unitOfWork.GetRepository<PlayerIds>().GetListAsync(
+        var toSubscriptionIds = await _unitOfWork.GetRepository<SubscriptionIds>().GetListAsync(
             predicate: x => x.Username == recipientUsername
         );
-        var toIds = toPlayerIds.Select(x => x.PlayerId).ToArray();
+        var toIds = toSubscriptionIds.Select(x => x.SubscriptionId).ToArray();
         if (toIds.Length > 0)
         {
             var messageBody = message;
@@ -32,11 +35,10 @@ public class NotificationService : BaseService<NotificationService>
                 app_id = _config["OneSignal:AppId"],
                 headings = new { en = "Social app", es = "Title Spanish Message" },
                 contents = new { en = messageBody, es = "Spanish Message body" },
-                include_player_ids = toIds,
+                include_subscription_ids = toIds,
                 name = "INTERNAL_CAMPAIGN_NAME"
             };
             await _oneSignalService.SendNotification(obj);
         }
     }
-    
 }

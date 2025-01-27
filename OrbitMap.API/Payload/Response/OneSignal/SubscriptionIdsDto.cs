@@ -1,7 +1,7 @@
 namespace OrbitMap.API.Payload.Response.OneSignal;
 
-public class PlayerIdsDto
+public class SubscriptionIdsDto
 {
-    public string PlayerId { get; set; }
+    public string SubscriptionId { get; set; }
     public string Username { get; set; }
 }

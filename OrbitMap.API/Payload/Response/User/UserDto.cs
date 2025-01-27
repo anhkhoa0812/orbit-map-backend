@@ -11,7 +11,7 @@ public class UserDto
     public string? AvatarUrl { get; set; }
     public DateOnly? Birhtday { get; set; }
 
-    public string HumanizeredTime => DateTime.UtcNow.AddHours(LastActive.Hour - DateTime.UtcNow.Hour)
+    public string HumanizedTime => DateTime.UtcNow.Add(LastActive - DateTime.UtcNow)
         .Humanize(
             culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN"))
         );

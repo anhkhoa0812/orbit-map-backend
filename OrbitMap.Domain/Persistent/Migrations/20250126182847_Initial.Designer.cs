@@ -13,8 +13,8 @@ using OrbitMap.Domain.Persistent;
 namespace OrbitMap.Domain.Persistent.Migrations
 {
     [DbContext(typeof(OrbitMapContext))]
-    [Migration("20250117111314_cc")]
-    partial class cc
+    [Migration("20250126182847_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,8 +36,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Price")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -46,15 +46,15 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("cad0086a-c64a-4e63-b6e7-e98638a8b8dc"),
+                            Id = new Guid("79b0f136-d2fc-482b-83bb-75a2139451e3"),
                             BusinessServiceType = "FIRST_RESANDHOTEL",
-                            Price = 299000m
+                            Price = 299000
                         },
                         new
                         {
-                            Id = new Guid("d0163ee2-a305-4a1d-aaed-345cc479c76c"),
+                            Id = new Guid("b9963400-5ebb-47e6-b6ff-995a4b230f19"),
                             BusinessServiceType = "RESANDHOTEL_1Y",
-                            Price = 1299000m
+                            Price = 1299000
                         });
                 });
 
@@ -113,7 +113,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
                             AddresseeId = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 479, DateTimeKind.Utc).AddTicks(2320),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(4160),
                             RequesterId = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             Status = "Accepted"
                         });
@@ -135,91 +135,16 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Content")
+                    b.Property<string>("LastMessageChatDocument")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("MessageLastDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<Guid>("RecipientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RecipientUsername")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SenderUsername")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RecipientId");
-
-                    b.HasIndex("SenderId");
 
                     b.ToTable("LastMessageChat");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Message", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("DateRead")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<Guid>("RecipientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RecipientUsername")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SenderUsername")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("StoryId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipientId");
-
-                    b.HasIndex("SenderId");
-
-                    b.HasIndex("StoryId");
-
-                    b.ToTable("Message");
-                });
-
-            modelBuilder.Entity("OrbitMap.Domain.Entities.MessageTest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -231,14 +156,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MessageTest");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("509f9db4-98d8-4807-8f79-2ad24cf271e9"),
-                            MessageDocument = "{\"SenderUsername\":\"hoang\",\"RecipientUsername\":\"khoa\",\"Content\":\"kkk\",\"DateRead\":\"2025-01-17T18:13:14.482746+07:00\",\"StoryId\":\"3300569b-0d72-4882-a1d2-db3a9bdf67d2\"}"
-                        });
+                    b.ToTable("Message");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.News", b =>
@@ -253,9 +171,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<string>("BusinessAddress")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
-
-                    b.Property<Guid?>("BusinessId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("BusinessImage")
                         .IsRequired()
@@ -297,8 +212,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BusinessId");
-
                     b.ToTable("News");
 
                     b.HasData(
@@ -310,8 +223,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             BusinessImage = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png",
                             BusinessName = "Báo Thái Bình",
                             Content = "Bảo tàng tại Nam Từ Liêm, Hà Nội, mở cửa 1/11 và miễn phí vé trong tháng đầu. Dự án 2.500 tỷ đồng trải rộng trên 74ha, với điểm nhấn là Tháp Chiến thắng cao 45m - tượng trưng cho năm 1945. Ngoài trưng bày lịch sử chiến tranh, bảo tàng còn mang đến trải nghiệm về cuộc đấu tranh của Quân đội Nhân dân Việt Nam.",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 482, DateTimeKind.Utc).AddTicks(8790),
-                            ExpirationDate = new DateTime(2025, 2, 17, 11, 13, 14, 482, DateTimeKind.Utc).AddTicks(8830),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7760),
+                            ExpirationDate = new DateTime(2025, 2, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7770),
                             ImageUrls = new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" },
                             Title = "TỪ 1/11 BẢO TÀNG LỊCH SỬ QUÂN SỰ MIỄN PHÍ VÉ",
                             Type = "HeaderBanner",
@@ -325,8 +238,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             BusinessImage = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png",
                             BusinessName = "Viettrekking",
                             Content = "Fansipan – ngọn núi cao nhất Việt Nam, không chỉ được mệnh danh là Nóc nhà Đông Dương mà còn là biểu tượng chinh phục của sức trẻ cùng lòng quyết tâm cháy bỏng. Với độ cao 3143m, Fansipan là ngọn núi cao nhất Việt Nam và là mơ ước của những người đam mê chinh phục.",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 482, DateTimeKind.Utc).AddTicks(8830),
-                            ExpirationDate = new DateTime(2025, 2, 17, 11, 13, 14, 482, DateTimeKind.Utc).AddTicks(8830),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7800),
+                            ExpirationDate = new DateTime(2025, 2, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7800),
                             ImageUrls = new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" },
                             Title = "Tour leo núi Fansipan 2N1Đ (Xuất phát từ Sa Pa)",
                             Type = "BannersOnPage",
@@ -368,30 +281,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasIndex("NewsId");
 
                     b.ToTable("NewsReaction");
-                });
-
-            modelBuilder.Entity("OrbitMap.Domain.Entities.PlayerIds", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("MemberId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("PlayerId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MemberId");
-
-                    b.ToTable("PlayerIds");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Role", b =>
@@ -466,6 +355,30 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Story");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.SubscriptionIds", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SubscriptionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemberId");
+
+                    b.ToTable("SubscriptionIds");
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Transaction", b =>
@@ -564,7 +477,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("bcd34cfc-02e3-430c-93d1-a4943e10293a"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 483, DateTimeKind.Utc).AddTicks(6250),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 97, DateTimeKind.Utc).AddTicks(5210),
                             DisplayName = "admin",
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "8123456789",
@@ -608,7 +521,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8640),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6010),
                             DisplayName = "Khoa Gió Tai",
                             PasswordHash = "v6plobem2ptzJLRd532mc835oAiq5JhrqBgHaCbjR+Y=",
                             PhoneNumber = "0123456789",
@@ -616,13 +529,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "khoa",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8300)
+                            LastActive = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(5770)
                         },
                         new
                         {
                             Id = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8760),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6140),
                             DisplayName = "Hoàng Gió Nhải",
                             PasswordHash = "Jwcj5/UKJtSukNoOEwefKT3TfplT9/mAHOfeGaNfxY4=",
                             PhoneNumber = "1234567890",
@@ -630,13 +543,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "hoang",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8740)
+                            LastActive = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6130)
                         },
                         new
                         {
                             Id = new Guid("68c029f3-b49f-41da-864c-40299f71a956"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
-                            CreatedDate = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8770),
+                            CreatedDate = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6160),
                             DisplayName = "quan",
                             PasswordHash = "e24ih8ftxem8WzOQkrSS/q4n7Yv3+eGp9GlZThzEFcs=",
                             PhoneNumber = "0399533724",
@@ -644,7 +557,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "quan",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 1, 17, 11, 13, 14, 480, DateTimeKind.Utc).AddTicks(8770)
+                            LastActive = new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6150)
                         });
                 });
 
@@ -678,57 +591,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("Requester");
                 });
 
-            modelBuilder.Entity("OrbitMap.Domain.Entities.LastMessageChat", b =>
-                {
-                    b.HasOne("OrbitMap.Domain.Entities.Member", "Recipient")
-                        .WithMany("LastMessageChatsReceived")
-                        .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrbitMap.Domain.Entities.Member", "Sender")
-                        .WithMany("LastMessageChatsSent")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Recipient");
-
-                    b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("OrbitMap.Domain.Entities.Message", b =>
-                {
-                    b.HasOne("OrbitMap.Domain.Entities.Member", "Recipient")
-                        .WithMany("MessagesReceived")
-                        .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrbitMap.Domain.Entities.Member", "Sender")
-                        .WithMany("MessagesSent")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrbitMap.Domain.Entities.Story", "Story")
-                        .WithMany()
-                        .HasForeignKey("StoryId");
-
-                    b.Navigation("Recipient");
-
-                    b.Navigation("Sender");
-
-                    b.Navigation("Story");
-                });
-
-            modelBuilder.Entity("OrbitMap.Domain.Entities.News", b =>
-                {
-                    b.HasOne("OrbitMap.Domain.Entities.Business", null)
-                        .WithMany("News")
-                        .HasForeignKey("BusinessId");
-                });
-
             modelBuilder.Entity("OrbitMap.Domain.Entities.NewsReaction", b =>
                 {
                     b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
@@ -748,22 +610,22 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("News");
                 });
 
-            modelBuilder.Entity("OrbitMap.Domain.Entities.PlayerIds", b =>
-                {
-                    b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
-                        .WithMany("PlayerIds")
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Member");
-                });
-
             modelBuilder.Entity("OrbitMap.Domain.Entities.Story", b =>
                 {
                     b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
                         .WithMany("Stories")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("OrbitMap.Domain.Entities.SubscriptionIds", b =>
+                {
+                    b.HasOne("OrbitMap.Domain.Entities.Member", "Member")
+                        .WithMany("SubscriptionIds")
+                        .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -818,30 +680,17 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Navigation("NewsReactions");
                 });
 
-            modelBuilder.Entity("OrbitMap.Domain.Entities.Business", b =>
-                {
-                    b.Navigation("News");
-                });
-
             modelBuilder.Entity("OrbitMap.Domain.Entities.Member", b =>
                 {
                     b.Navigation("FriendshipAddressees");
 
                     b.Navigation("FriendshipRequests");
 
-                    b.Navigation("LastMessageChatsReceived");
-
-                    b.Navigation("LastMessageChatsSent");
-
-                    b.Navigation("MessagesReceived");
-
-                    b.Navigation("MessagesSent");
-
                     b.Navigation("NewsReactions");
 
-                    b.Navigation("PlayerIds");
-
                     b.Navigation("Stories");
+
+                    b.Navigation("SubscriptionIds");
 
                     b.Navigation("Transactions");
                 });

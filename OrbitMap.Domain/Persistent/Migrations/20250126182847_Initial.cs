@@ -20,7 +20,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     BusinessServiceType = table.Column<string>(type: "text", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: false)
+                    Price = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,7 +39,19 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MessageTest",
+                name: "LastMessageChat",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LastMessageChatDocument = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LastMessageChat", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Message",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -47,7 +59,31 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MessageTest", x => x.Id);
+                    table.PrimaryKey("PK_Message", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "News",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "varchar(500)", nullable: false),
+                    Content = table.Column<string>(type: "varchar", nullable: false),
+                    ImageUrls = table.Column<List<string>>(type: "text[]", nullable: true),
+                    BusinessName = table.Column<string>(type: "varchar(255)", nullable: false),
+                    BusinessAddress = table.Column<string>(type: "varchar(255)", nullable: false),
+                    BusinessImage = table.Column<string>(type: "text", nullable: false),
+                    BannerImage = table.Column<string>(type: "text", nullable: true),
+                    UsefulReactionCount = table.Column<int>(type: "integer", nullable: false),
+                    UselessReactionCount = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_News", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,137 +183,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LastMessageChat",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderUsername = table.Column<string>(type: "text", nullable: false),
-                    RecipientId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RecipientUsername = table.Column<string>(type: "text", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    MessageLastDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    GroupName = table.Column<string>(type: "text", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LastMessageChat", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_LastMessageChat_User_RecipientId",
-                        column: x => x.RecipientId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_LastMessageChat_User_SenderId",
-                        column: x => x.SenderId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "News",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "varchar(500)", nullable: false),
-                    Content = table.Column<string>(type: "varchar", nullable: false),
-                    ImageUrls = table.Column<List<string>>(type: "text[]", nullable: true),
-                    BusinessName = table.Column<string>(type: "varchar(255)", nullable: false),
-                    BusinessAddress = table.Column<string>(type: "varchar(255)", nullable: false),
-                    BusinessImage = table.Column<string>(type: "text", nullable: false),
-                    BannerImage = table.Column<string>(type: "text", nullable: true),
-                    UsefulReactionCount = table.Column<int>(type: "integer", nullable: false),
-                    UselessReactionCount = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    ExpirationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    BusinessId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_News", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_News_User_BusinessId",
-                        column: x => x.BusinessId,
-                        principalTable: "User",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlayerIds",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PlayerId = table.Column<string>(type: "text", nullable: false),
-                    MemberId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Username = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlayerIds", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PlayerIds_User_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Story",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Content = table.Column<string>(type: "varchar(255)", nullable: true),
-                    MediaUrl = table.Column<string>(type: "varchar", nullable: false),
-                    Location = table.Column<string>(type: "varchar(50)", nullable: false),
-                    Weather = table.Column<string>(type: "varchar(50)", nullable: true),
-                    ExpirationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    IsDisabled = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Story", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Story_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Transaction",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OrderCode = table.Column<string>(type: "varchar(50)", nullable: false),
-                    MemberId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    Description = table.Column<string>(type: "varchar(255)", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Transaction", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Transaction_User_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "NewsReaction",
                 columns: table => new
                 {
@@ -307,37 +212,70 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Message",
+                name: "Story",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderUsername = table.Column<string>(type: "text", nullable: false),
-                    RecipientId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RecipientUsername = table.Column<string>(type: "text", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    DateRead = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    StoryId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Content = table.Column<string>(type: "varchar(255)", nullable: true),
+                    MediaUrl = table.Column<string>(type: "varchar", nullable: false),
+                    Location = table.Column<string>(type: "varchar(50)", nullable: false),
+                    Weather = table.Column<string>(type: "varchar(50)", nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    IsDisabled = table.Column<bool>(type: "boolean", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Message", x => x.Id);
+                    table.PrimaryKey("PK_Story", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Message_Story_StoryId",
-                        column: x => x.StoryId,
-                        principalTable: "Story",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Message_User_RecipientId",
-                        column: x => x.RecipientId,
+                        name: "FK_Story_User_UserId",
+                        column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SubscriptionIds",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubscriptionId = table.Column<string>(type: "text", nullable: false),
+                    MemberId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubscriptionIds", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Message_User_SenderId",
-                        column: x => x.SenderId,
+                        name: "FK_SubscriptionIds_User_MemberId",
+                        column: x => x.MemberId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Transaction",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrderCode = table.Column<string>(type: "varchar(50)", nullable: false),
+                    MemberId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "varchar(255)", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    LastModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Transaction", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Transaction_User_MemberId",
+                        column: x => x.MemberId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -348,17 +286,17 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 columns: new[] { "Id", "BusinessServiceType", "Price" },
                 values: new object[,]
                 {
-                    { new Guid("847b95bb-ad52-4bd2-a145-dd06337901f9"), "FIRST_RESANDHOTEL", 299000m },
-                    { new Guid("f41df09a-654c-435b-b436-a2ea0930cba5"), "RESANDHOTEL_1Y", 1299000m }
+                    { new Guid("79b0f136-d2fc-482b-83bb-75a2139451e3"), "FIRST_RESANDHOTEL", 299000 },
+                    { new Guid("b9963400-5ebb-47e6-b6ff-995a4b230f19"), "RESANDHOTEL_1Y", 1299000 }
                 });
 
             migrationBuilder.InsertData(
                 table: "News",
-                columns: new[] { "Id", "BannerImage", "BusinessAddress", "BusinessId", "BusinessImage", "BusinessName", "Content", "CreatedDate", "ExpirationDate", "ImageUrls", "LastModifiedDate", "Title", "Type", "UsefulReactionCount", "UselessReactionCount" },
+                columns: new[] { "Id", "BannerImage", "BusinessAddress", "BusinessImage", "BusinessName", "Content", "CreatedDate", "ExpirationDate", "ImageUrls", "LastModifiedDate", "Title", "Type", "UsefulReactionCount", "UselessReactionCount" },
                 values: new object[,]
                 {
-                    { new Guid("8254d0a9-6b2b-41e4-ac19-d56be30a5727"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783633/3b07c90d-3c5c-4600-a569-274d93804790.png", "Thái Bình", null, "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png", "Báo Thái Bình", "Bảo tàng tại Nam Từ Liêm, Hà Nội, mở cửa 1/11 và miễn phí vé trong tháng đầu. Dự án 2.500 tỷ đồng trải rộng trên 74ha, với điểm nhấn là Tháp Chiến thắng cao 45m - tượng trưng cho năm 1945. Ngoài trưng bày lịch sử chiến tranh, bảo tàng còn mang đến trải nghiệm về cuộc đấu tranh của Quân đội Nhân dân Việt Nam.", new DateTime(2025, 1, 17, 10, 27, 46, 317, DateTimeKind.Utc).AddTicks(920), new DateTime(2025, 2, 17, 10, 27, 46, 317, DateTimeKind.Utc).AddTicks(930), new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" }, null, "TỪ 1/11 BẢO TÀNG LỊCH SỬ QUÂN SỰ MIỄN PHÍ VÉ", "HeaderBanner", 0, 0 },
-                    { new Guid("fc456c95-6ffe-4408-a64e-1750c96e38a0"), null, "Hà Nội", null, "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png", "Viettrekking", "Fansipan – ngọn núi cao nhất Việt Nam, không chỉ được mệnh danh là Nóc nhà Đông Dương mà còn là biểu tượng chinh phục của sức trẻ cùng lòng quyết tâm cháy bỏng. Với độ cao 3143m, Fansipan là ngọn núi cao nhất Việt Nam và là mơ ước của những người đam mê chinh phục.", new DateTime(2025, 1, 17, 10, 27, 46, 317, DateTimeKind.Utc).AddTicks(940), new DateTime(2025, 2, 17, 10, 27, 46, 317, DateTimeKind.Utc).AddTicks(940), new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" }, null, "Tour leo núi Fansipan 2N1Đ (Xuất phát từ Sa Pa)", "BannersOnPage", 0, 0 }
+                    { new Guid("8254d0a9-6b2b-41e4-ac19-d56be30a5727"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783633/3b07c90d-3c5c-4600-a569-274d93804790.png", "Thái Bình", "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png", "Báo Thái Bình", "Bảo tàng tại Nam Từ Liêm, Hà Nội, mở cửa 1/11 và miễn phí vé trong tháng đầu. Dự án 2.500 tỷ đồng trải rộng trên 74ha, với điểm nhấn là Tháp Chiến thắng cao 45m - tượng trưng cho năm 1945. Ngoài trưng bày lịch sử chiến tranh, bảo tàng còn mang đến trải nghiệm về cuộc đấu tranh của Quân đội Nhân dân Việt Nam.", new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7760), new DateTime(2025, 2, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7770), new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" }, null, "TỪ 1/11 BẢO TÀNG LỊCH SỬ QUÂN SỰ MIỄN PHÍ VÉ", "HeaderBanner", 0, 0 },
+                    { new Guid("fc456c95-6ffe-4408-a64e-1750c96e38a0"), null, "Hà Nội", "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png", "Viettrekking", "Fansipan – ngọn núi cao nhất Việt Nam, không chỉ được mệnh danh là Nóc nhà Đông Dương mà còn là biểu tượng chinh phục của sức trẻ cùng lòng quyết tâm cháy bỏng. Với độ cao 3143m, Fansipan là ngọn núi cao nhất Việt Nam và là mơ ước của những người đam mê chinh phục.", new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7800), new DateTime(2025, 2, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(7800), new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" }, null, "Tour leo núi Fansipan 2N1Đ (Xuất phát từ Sa Pa)", "BannersOnPage", 0, 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -376,24 +314,24 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 columns: new[] { "Id", "AvatarUrl", "Birthday", "CreatedDate", "Discriminator", "DisplayName", "ExpiredRankDate", "IsPremium", "LastActive", "LastModifiedDate", "PasswordHash", "PhoneNumber", "RoleId", "Username" },
                 values: new object[,]
                 {
-                    { new Guid("68c029f3-b49f-41da-864c-40299f71a956"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(2040), "Member", "quan", null, true, new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(2040), null, "e24ih8ftxem8WzOQkrSS/q4n7Yv3+eGp9GlZThzEFcs=", "0399533724", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "quan" },
-                    { new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(1910), "Member", "Khoa Gió Tai", null, true, new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(1690), null, "v6plobem2ptzJLRd532mc835oAiq5JhrqBgHaCbjR+Y=", "0123456789", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "khoa" }
+                    { new Guid("68c029f3-b49f-41da-864c-40299f71a956"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6160), "Member", "quan", null, true, new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6150), null, "e24ih8ftxem8WzOQkrSS/q4n7Yv3+eGp9GlZThzEFcs=", "0399533724", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "quan" },
+                    { new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6010), "Member", "Khoa Gió Tai", null, true, new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(5770), null, "v6plobem2ptzJLRd532mc835oAiq5JhrqBgHaCbjR+Y=", "0123456789", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "khoa" }
                 });
 
             migrationBuilder.InsertData(
                 table: "User",
                 columns: new[] { "Id", "AvatarUrl", "CreatedDate", "Discriminator", "DisplayName", "LastModifiedDate", "PasswordHash", "PhoneNumber", "RoleId", "Username" },
-                values: new object[] { new Guid("bcd34cfc-02e3-430c-93d1-a4943e10293a"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg", new DateTime(2025, 1, 17, 10, 27, 46, 317, DateTimeKind.Utc).AddTicks(9380), "User", "admin", null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "8123456789", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "admin" });
+                values: new object[] { new Guid("bcd34cfc-02e3-430c-93d1-a4943e10293a"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg", new DateTime(2025, 1, 26, 18, 28, 47, 97, DateTimeKind.Utc).AddTicks(5210), "User", "admin", null, "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", "8123456789", new Guid("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"), "admin" });
 
             migrationBuilder.InsertData(
                 table: "User",
                 columns: new[] { "Id", "AvatarUrl", "Birthday", "CreatedDate", "Discriminator", "DisplayName", "ExpiredRankDate", "IsPremium", "LastActive", "LastModifiedDate", "PasswordHash", "PhoneNumber", "RoleId", "Username" },
-                values: new object[] { new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(2030), "Member", "Hoàng Gió Nhải", null, true, new DateTime(2025, 1, 17, 10, 27, 46, 315, DateTimeKind.Utc).AddTicks(2020), null, "Jwcj5/UKJtSukNoOEwefKT3TfplT9/mAHOfeGaNfxY4=", "1234567890", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "hoang" });
+                values: new object[] { new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png", new DateOnly(1999, 1, 1), new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6140), "Member", "Hoàng Gió Nhải", null, true, new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(6130), null, "Jwcj5/UKJtSukNoOEwefKT3TfplT9/mAHOfeGaNfxY4=", "1234567890", new Guid("d1cd3eef-3318-48e3-99f7-31a938fbd021"), "hoang" });
 
             migrationBuilder.InsertData(
                 table: "Friendship",
                 columns: new[] { "Id", "AddresseeId", "CreatedDate", "LastModifiedDate", "RequesterId", "Status" },
-                values: new object[] { new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"), new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), new DateTime(2025, 1, 17, 10, 27, 46, 313, DateTimeKind.Utc).AddTicks(3770), null, new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), "Accepted" });
+                values: new object[] { new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"), new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"), new DateTime(2025, 1, 26, 18, 28, 47, 96, DateTimeKind.Utc).AddTicks(4160), null, new Guid("b1cc911f-7d57-4043-a716-c5249da61270"), "Accepted" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Connection_GroupName",
@@ -411,36 +349,6 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 column: "RequesterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LastMessageChat_RecipientId",
-                table: "LastMessageChat",
-                column: "RecipientId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LastMessageChat_SenderId",
-                table: "LastMessageChat",
-                column: "SenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Message_RecipientId",
-                table: "Message",
-                column: "RecipientId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Message_SenderId",
-                table: "Message",
-                column: "SenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Message_StoryId",
-                table: "Message",
-                column: "StoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_News_BusinessId",
-                table: "News",
-                column: "BusinessId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_NewsReaction_MemberId",
                 table: "NewsReaction",
                 column: "MemberId");
@@ -451,14 +359,14 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 column: "NewsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlayerIds_MemberId",
-                table: "PlayerIds",
-                column: "MemberId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Story_UserId",
                 table: "Story",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubscriptionIds_MemberId",
+                table: "SubscriptionIds",
+                column: "MemberId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transaction_MemberId",
@@ -504,22 +412,19 @@ namespace OrbitMap.Domain.Persistent.Migrations
                 name: "Message");
 
             migrationBuilder.DropTable(
-                name: "MessageTest");
-
-            migrationBuilder.DropTable(
                 name: "NewsReaction");
 
             migrationBuilder.DropTable(
-                name: "PlayerIds");
+                name: "Story");
+
+            migrationBuilder.DropTable(
+                name: "SubscriptionIds");
 
             migrationBuilder.DropTable(
                 name: "Transaction");
 
             migrationBuilder.DropTable(
                 name: "Group");
-
-            migrationBuilder.DropTable(
-                name: "Story");
 
             migrationBuilder.DropTable(
                 name: "News");
