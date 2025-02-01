@@ -1,0 +1,94 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using OrbitMap.API.Helper;
+using OrbitMap.API.Payload.Response.Location;
+using OrbitMap.API.Payload.Response.User;
+using OrbitMap.Domain.Entities;
+using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Persistent;
+using OrbitMap.Repository.Interfaces;
+using ILogger = Serilog.ILogger;
+
+namespace OrbitMap.API.SignalR;
+
+[Authorize]
+public class LocationHub : Hub
+{
+    private readonly ILogger _logger;
+    private readonly IMapper _mapper;
+    private readonly PresenceTracker _tracker;
+    private readonly IUnitOfWork<OrbitMapContext> _unitOfWork;
+
+    public LocationHub(
+        PresenceTracker tracker,
+        IUnitOfWork<OrbitMapContext> unitOfWork,
+        IMapper mapper,
+        ILogger logger)
+    {
+        _tracker = tracker;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _logger = logger;
+    }
+
+    public async Task UpdateUserLocation(double latitude, double longitude)
+    {
+        try
+        {
+            var username = Context.User.GetUsername();
+            var userEntity = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+                predicate: x => x.Username.Equals(username)
+            );
+            var user = _mapper.Map<UserDto>(userEntity);
+            var onlineFriends = await GetUsersOnlineAsync(username, await _tracker.GetOnlineUsers());
+            var allConnections = onlineFriends
+                .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result ?? new List<string>()).ToList();
+            if (allConnections.Count == 0) return;
+            var userLocation = new UserLocationDto()
+            {
+                Username = username,
+                Latitude = latitude,
+                Longitude = longitude,
+                Timestamp = DateTime.UtcNow
+            };
+            await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", user, userLocation);
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Failed to update location for {Username}", Context.User.GetUsername());
+            throw new HubException("Failed to update location.");
+        }
+    }
+
+    private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername, string[] userOnline)
+    {
+        // Lấy thông tin người dùng hiện tại
+        var currentUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: u => u.Username == currentUsername
+        );
+
+        if (currentUser == null) return new List<UserDto>();
+
+        // Lấy danh sách bạn bè của người dùng hiện tại
+        var friends = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+            predicate: f => (f.RequesterId == currentUser.Id || f.AddresseeId == currentUser.Id) &&
+                            f.Status == EFriendshipStatus.Accepted,
+            include: f => f.Include(f => f.Requester).Include(f => f.Addressee)
+        );
+
+        // Lấy tất cả người dùng online một lần
+        var userEntities = await _unitOfWork.GetRepository<Member>().GetListAsync(
+            predicate: u => userOnline.Contains(u.Username)
+        );
+
+        // Lọc người dùng online mà là bạn bè của người dùng hiện tại
+        var listUserOnline = userEntities
+            .Where(userEntity =>
+                friends.Any(f => f.RequesterId == userEntity.Id || f.AddresseeId == userEntity.Id) &&
+                userEntity.Username != currentUsername).ToList();
+        var result = _mapper.Map<List<UserDto>>(listUserOnline);
+        return result;
+    }
+}

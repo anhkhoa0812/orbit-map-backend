@@ -80,6 +80,7 @@ try
     app.MapHub<PresenceHub>("hubs/presence");
     app.MapHub<MessageHub>("hubs/message");
     app.MapHub<DeviceHub>("hubs/device");
+    app.MapHub<LocationHub>("hubs/location");
     // RecurringJob.AddOrUpdate<StoryCleanupService>(
     //     "remove-expired-stories",
     //     job => job.RemoveExpiredStories(),

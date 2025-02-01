@@ -92,29 +92,6 @@ public class PresenceHub : Hub
         await Clients.All.SendAsync("OnUpdateUserPeer", userPeer);
     }
 
-    public async Task UpdateUserLocation(double latitude, double longitude)
-    {
-        var username = Context.User.GetUsername();
-        var userEntity = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
-            predicate: x => x.Username.Equals(username)
-        );
-        var user = _mapper.Map<UserDto>(userEntity);
-        var userLocation = new UserLocationDto
-        {
-            Username = username,
-            Latitude = latitude,
-            Longitude = longitude,
-            Timestamp = DateTime.UtcNow
-        };
-        var onlineFriends = await GetUsersOnlineAsync(username, await _tracker.GetOnlineUsers());
-        foreach (var friend in onlineFriends)
-        {
-            var connectionId = await _tracker.GetConnectionsForUser(friend.Username);
-            if (connectionId != null)
-                await Clients.Clients(connectionId).SendAsync("ReceiveUserLocation", user, userLocation);
-        }
-    }
-
     private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername, string[] userOnline)
     {
         // var listUserOnline = new List<UserDto>();
@@ -156,15 +133,14 @@ public class PresenceHub : Hub
         return result;
     }
 
-    private async Task<List<string>> GetFriendUserNameOfUserAsync(Member user)
+    private async Task<ICollection<string>> GetFriendUserNameOfUserAsync(Member user)
     {
-        var friends = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+        var friendUsernames = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+            selector: f => f.RequesterId == user.Id ? f.Addressee.Username : f.Requester.Username,
             predicate: f => (f.RequesterId == user.Id || f.AddresseeId == user.Id) &&
                             f.Status == EFriendshipStatus.Accepted,
             include: f => f.Include(f => f.Requester).Include(f => f.Addressee)
         );
-        var friendUsernames = friends
-            .Select(f => f.RequesterId == user.Id ? f.Addressee.Username : f.Requester.Username).ToList();
         return friendUsernames;
     }
 }

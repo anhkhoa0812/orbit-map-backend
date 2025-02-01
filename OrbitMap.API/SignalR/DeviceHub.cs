@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OrbitMap.API.Services.Interface;
 
 namespace OrbitMap.API.SignalR;
 
+[Authorize]
 public class DeviceHub : Hub
 {
     private static readonly Dictionary<string, Dictionary<string, string>> UserDeviceConnections = new();

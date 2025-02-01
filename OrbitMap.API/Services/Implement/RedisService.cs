@@ -6,10 +6,12 @@ namespace OrbitMap.API.Services.Implement;
 public class RedisService : IRedisService
 {
     private readonly IDatabase _db;
+
     public RedisService(IConnectionMultiplexer redis)
     {
         _db = redis.GetDatabase();
     }
+
     public async Task<string> GetStringAsync(string key)
     {
         return await _db.StringGetAsync(key);
@@ -43,5 +45,20 @@ public class RedisService : IRedisService
     public Task<List<string>> GetListAsync(string key)
     {
         return _db.ListRangeAsync(key).ContinueWith(t => t.Result.Select(x => x.ToString()).ToList());
+    }
+
+    public async Task<bool> SetHashAsync(string key, string field, string value)
+    {
+        return await _db.HashSetAsync(key, field, value);
+    }
+
+    public async Task<HashEntry[]> GetHashAsync(string key)
+    {
+        return await _db.HashGetAllAsync(key);
+    }
+
+    public async Task RemoveHashAsync(string key, string field)
+    {
+        await _db.HashDeleteAsync(key, field);
     }
 }
