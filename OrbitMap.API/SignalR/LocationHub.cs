@@ -42,9 +42,9 @@ public class LocationHub : Hub
                 predicate: x => x.Username.Equals(username)
             );
             var user = _mapper.Map<UserDto>(userEntity);
-            var onlineFriends = await GetUsersOnlineAsync(username, await _tracker.GetOnlineUsers());
-            var allConnections = onlineFriends
-                .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result ?? new List<string>()).ToList();
+            var friends = await GetUsersOnlineAsync(username);
+            var allConnections = friends
+                .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result).ToList();
             if (allConnections.Count == 0) return;
             var userLocation = new UserLocationDto()
             {
@@ -62,7 +62,7 @@ public class LocationHub : Hub
         }
     }
 
-    private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername, string[] userOnline)
+    private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername)
     {
         // Lấy thông tin người dùng hiện tại
         var currentUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
@@ -77,18 +77,37 @@ public class LocationHub : Hub
                             f.Status == EFriendshipStatus.Accepted,
             include: f => f.Include(f => f.Requester).Include(f => f.Addressee)
         );
-
-        // Lấy tất cả người dùng online một lần
-        var userEntities = await _unitOfWork.GetRepository<Member>().GetListAsync(
-            predicate: u => userOnline.Contains(u.Username)
-        );
-
-        // Lọc người dùng online mà là bạn bè của người dùng hiện tại
-        var listUserOnline = userEntities
-            .Where(userEntity =>
-                friends.Any(f => f.RequesterId == userEntity.Id || f.AddresseeId == userEntity.Id) &&
-                userEntity.Username != currentUsername).ToList();
-        var result = _mapper.Map<List<UserDto>>(listUserOnline);
+        var friendEntities = friends.Select(f => f.RequesterId == currentUser.Id ? f.Addressee : f.Requester).ToList();
+        var result = _mapper.Map<List<UserDto>>(friendEntities);
         return result;
     }
+    // private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername, string[] userOnline)
+    // {
+    //     // Lấy thông tin người dùng hiện tại
+    //     var currentUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+    //         predicate: u => u.Username == currentUsername
+    //     );
+    //
+    //     if (currentUser == null) return new List<UserDto>();
+    //
+    //     // Lấy danh sách bạn bè của người dùng hiện tại
+    //     var friends = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+    //         predicate: f => (f.RequesterId == currentUser.Id || f.AddresseeId == currentUser.Id) &&
+    //                         f.Status == EFriendshipStatus.Accepted,
+    //         include: f => f.Include(f => f.Requester).Include(f => f.Addressee)
+    //     );
+    //
+    //     // Lấy tất cả người dùng online một lần
+    //     var userEntities = await _unitOfWork.GetRepository<Member>().GetListAsync(
+    //         predicate: u => userOnline.Contains(u.Username)
+    //     );
+    //
+    //     // Lọc người dùng online mà là bạn bè của người dùng hiện tại
+    //     var listUserOnline = userEntities
+    //         .Where(userEntity =>
+    //             friends.Any(f => f.RequesterId == userEntity.Id || f.AddresseeId == userEntity.Id) &&
+    //             userEntity.Username != currentUsername).ToList();
+    //     var result = _mapper.Map<List<UserDto>>(listUserOnline);
+    //     return result;
+    // }
 }
