@@ -1,5 +1,6 @@
 using AutoMapper;
 using OrbitMap.API.Payload.Request.User;
+using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
@@ -20,5 +21,6 @@ public class UserMapper : Profile
         CreateMap<Member, MemberDto>();
         CreateMap<CreateBusinessRequest, Business>();
         CreateMap<Business, BusinessResponse>();
+        CreateMap<Member, UserLocationDto>();
     }
 }

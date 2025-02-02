@@ -41,19 +41,15 @@ public class LocationHub : Hub
             var userEntity = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                 predicate: x => x.Username.Equals(username)
             );
-            var user = _mapper.Map<UserDto>(userEntity);
             var friends = await GetUsersOnlineAsync(username);
             var allConnections = friends
                 .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result).ToList();
             if (allConnections.Count == 0) return;
-            var userLocation = new UserLocationDto()
-            {
-                Username = username,
-                Latitude = latitude,
-                Longitude = longitude,
-                Timestamp = DateTime.UtcNow
-            };
-            await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", user, userLocation);
+            var userLocation = _mapper.Map<UserLocationDto>(userEntity);
+            userLocation.Latitude = latitude;
+            userLocation.Longitude = longitude;
+            userLocation.Timestamp = DateTime.UtcNow;
+            await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", userLocation);
         }
         catch (Exception e)
         {
