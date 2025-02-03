@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OrbitMap.API.Helper;
+using OrbitMap.API.Payload.Request.Location;
 using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.Domain.Entities;
@@ -33,7 +34,7 @@ public class LocationHub : Hub
         _logger = logger;
     }
 
-    public async Task UpdateUserLocation(double latitude, double longitude)
+    public async Task UpdateUserLocation(UpdateUserLocationRequest request)
     {
         try
         {
@@ -46,8 +47,8 @@ public class LocationHub : Hub
                 .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result).ToList();
             if (allConnections.Count == 0) return;
             var userLocation = _mapper.Map<UserLocationDto>(userEntity);
-            userLocation.Latitude = latitude;
-            userLocation.Longitude = longitude;
+            userLocation.Latitude = request.Latitude;
+            userLocation.Longitude = request.Longitude;
             userLocation.Timestamp = DateTime.UtcNow;
             await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", userLocation);
         }
