@@ -18,13 +18,14 @@ public class PresenceTracker
             }
             else
             {
-                OnlineUsers.Add(username, new List<string>() { connectionId});
+                OnlineUsers.Add(username, new List<string>() { connectionId });
                 isOnline = true;
             }
         }
-        
+
         return Task.FromResult(isOnline);
     }
+
     //Xử lý khi người dùng offline
     public Task<bool> UserDisconnected(string username, string connectionId)
     {
@@ -33,7 +34,7 @@ public class PresenceTracker
         lock (OnlineUsers)
         {
             if (!OnlineUsers.ContainsKey(username)) return Task.FromResult(isOffline);
-            
+
             OnlineUsers[username].Remove(connectionId);
             if (OnlineUsers[username].Count == 0)
             {
@@ -41,8 +42,10 @@ public class PresenceTracker
                 isOffline = true;
             }
         }
+
         return Task.FromResult(isOffline);
     }
+
     //Lấy danh sách người dùng online
     public Task<string[]> GetOnlineUsers()
     {
@@ -51,8 +54,10 @@ public class PresenceTracker
         {
             onlineUsers = OnlineUsers.OrderBy(k => k.Key).Select(k => k.Key).ToArray();
         }
+
         return Task.FromResult(onlineUsers);
     }
+
     //Lấy tất cả connectionId của người dùng
     public Task<List<string>> GetConnectionsForUser(string username)
     {
@@ -61,6 +66,7 @@ public class PresenceTracker
         {
             connectionIds = OnlineUsers.GetValueOrDefault(username);
         }
+
         return Task.FromResult(connectionIds);
     }
 }

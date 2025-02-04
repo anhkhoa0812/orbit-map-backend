@@ -42,24 +42,61 @@ public class LocationHub : Hub
             var userEntity = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                 predicate: x => x.Username.Equals(username)
             );
-            var friends = await GetUsersOnlineAsync(username);
-            var allConnections = friends
-                .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result).ToList();
-            if (allConnections.Count == 0) return;
+            if (userEntity == null)
+            {
+                _logger.Warning("User {Username} not found while updating location.", username);
+                return;
+            }
+
+            var friends = await GetFriends(username);
+            var friendUsernames = friends.Select(f => f.Username).ToList();
+            if (!friendUsernames.Any())
+            {
+                _logger.Information("User {Username} has no friends to send location.", username);
+                return;
+            }
+
             var userLocation = _mapper.Map<UserLocationDto>(userEntity);
             userLocation.Latitude = request.Latitude;
             userLocation.Longitude = request.Longitude;
             userLocation.Timestamp = DateTime.UtcNow;
-            await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", userLocation);
+            await Clients.Users(friendUsernames).SendAsync("ReceiveUserLocation", userLocation);
+            _logger.Information("Location update sent from {Username} to {FriendCount} friends.",
+                username, friendUsernames.Count);
         }
         catch (Exception e)
         {
             _logger.Error(e, "Failed to update location for {Username}", Context.User.GetUsername());
-            throw new HubException("Failed to update location.");
+            throw new HubException("Failed to update location: " + e);
         }
     }
+    // public async Task UpdateUserLocation(UpdateUserLocationRequest request)
+    // {
+    //     try
+    //     {
+    //         var username = Context.User.GetUsername();
+    //         var userEntity = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+    //             predicate: x => x.Username.Equals(username)
+    //         );
+    //         var friends = await GetFriends(username);
+    //         var allConnections = friends
+    //             .SelectMany(f => _tracker.GetConnectionsForUser(f.Username).Result).ToList();
+    //         if (allConnections.Count == 0) return;
+    //         _logger.Information("Connections: {Connections}", allConnections);
+    //         var userLocation = _mapper.Map<UserLocationDto>(userEntity);
+    //         userLocation.Latitude = request.Latitude;
+    //         userLocation.Longitude = request.Longitude;
+    //         userLocation.Timestamp = DateTime.UtcNow;
+    //         await Clients.Clients(allConnections).SendAsync("ReceiveUserLocation", userLocation);
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         _logger.Error(e, "Failed to update location for {Username}", Context.User.GetUsername());
+    //         throw new HubException("Failed to update location: " + e);
+    //     }
+    // }
 
-    private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername)
+    private async Task<List<UserDto>> GetFriends(string currentUsername)
     {
         // Lấy thông tin người dùng hiện tại
         var currentUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
