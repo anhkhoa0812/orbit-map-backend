@@ -9,7 +9,7 @@ namespace OrbitMap.API.Services.Interface;
 
 public interface IStoryService
 {
-    Task<StoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest);
+    Task<CreateStoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest);
 
     Task<List<StoryResponse>> GetStoriesByUserAsync(string username, string? searchTerm);
 

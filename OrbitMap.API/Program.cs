@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using Hangfire;
+using Microsoft.AspNetCore.SignalR;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Extensions;
 using OrbitMap.API.Logger;
@@ -34,6 +35,7 @@ try
     builder.Services.AddServices();
     builder.Services.AddRepositoryServices();
     builder.Services.AddDomainServices(builder.Configuration);
+    builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     builder.Services.AddRedis(builder.Configuration);
     builder.Services.AddEndpointsApiExplorer();

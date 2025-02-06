@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Contracts.Domains;
+using OrbitMap.Domain.Enums;
 
 namespace OrbitMap.Domain.Entities;
 
@@ -48,6 +49,8 @@ public class Member : User
     public virtual ICollection<NewsReaction>? NewsReactions { get; set; }
 
     public virtual ICollection<Transaction>? Transactions { get; set; }
+
+    public virtual ICollection<MemberLocation>? MemberLocations { get; set; }
 }
 
 public class Business : User
@@ -56,4 +59,6 @@ public class Business : User
 
     [ForeignKey(nameof(BusinessServiceId))]
     public BusinessService? BusinessService { get; set; }
+
+    public EBusinessType BusinessType { get; set; }
 }

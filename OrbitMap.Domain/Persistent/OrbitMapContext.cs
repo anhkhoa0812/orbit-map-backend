@@ -28,6 +28,8 @@ public class OrbitMapContext : DbContext
     public DbSet<News> News { get; set; }
     public DbSet<NewsReaction> NewsReaction { get; set; }
     public DbSet<BusinessService> BusinessService { get; set; }
+    public DbSet<Location> Location { get; set; }
+    public DbSet<MemberLocation> MemberLocation { get; set; }
     // public DbSet<MessageTest> MessageTest { get; set; }
 
 

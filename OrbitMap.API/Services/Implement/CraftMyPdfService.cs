@@ -3,6 +3,7 @@ using System.Text;
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using OrbitMap.API.Payload.Response.CraftMyPdf;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
@@ -24,22 +25,16 @@ public class CraftMyPdfService : BaseService<CraftMyPdfService>, ICraftMyPdfServ
     }
 
 
-    public async Task<string> GeneratePassport(string username)
+    public async Task<string> GeneratePassport(Member member, Location location)
     {
-        if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
-        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
-            predicate: x => x.Username.Equals(username)
-        );
-        if (member == null)
-            throw new AuthenticationException("Authentication failed");
         var data = new
         {
             name = member.DisplayName,
             id = member.Username,
             gender = "Nam",
             birthday = member.Birthday.ToString(),
-            profile_picture = member.AvatarUrl
+            profile_picture = member.AvatarUrl,
+            location_picture = location.Image
         };
         var jsonPayload = new
         {
@@ -58,7 +53,8 @@ public class CraftMyPdfService : BaseService<CraftMyPdfService>, ICraftMyPdfServ
             {
                 var response = await client.PostAsync(_settings.RequestUrl, jsonContent);
                 var responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
+                var responseJson = JsonConvert.DeserializeObject<CraftMyPdfResponse>(responseString);
+                return responseJson.File;
             }
             catch (Exception e)
             {

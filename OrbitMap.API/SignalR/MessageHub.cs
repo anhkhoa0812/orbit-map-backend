@@ -50,7 +50,6 @@ public class MessageHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
         var group = await AddToGroup(groupName);
         var messages = await GetMessageThread(Context.User.Identity.Name, otherUser);
-
         await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
     }
 

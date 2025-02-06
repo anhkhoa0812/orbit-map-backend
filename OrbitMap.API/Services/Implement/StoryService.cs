@@ -21,17 +21,19 @@ public class StoryService : BaseService<StoryService>, IStoryService
 {
     private readonly IUploadService _uploadService;
     private readonly IHubContext<MessageHub> _hubContext;
+    private readonly ICraftMyPdfService _craftMyPdfService;
 
     public StoryService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
         IHttpContextAccessor httpContextAccessor, IUploadService uploadService,
-        IHubContext<MessageHub> hubContext) : base(unitOfWork, logger, mapper,
+        IHubContext<MessageHub> hubContext, ICraftMyPdfService craftMyPdfService) : base(unitOfWork, logger, mapper,
         httpContextAccessor)
     {
         _uploadService = uploadService;
         _hubContext = hubContext;
+        _craftMyPdfService = craftMyPdfService;
     }
 
-    public async Task<StoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest)
+    public async Task<CreateStoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest)
     {
         if (string.IsNullOrEmpty(username))
             throw new AuthenticationException("Unauthorized");
@@ -41,6 +43,11 @@ public class StoryService : BaseService<StoryService>, IStoryService
         );
         if (user == null)
             throw new AuthenticationException("Unauthorized");
+        var location = await _unitOfWork.GetRepository<Location>().SingleOrDefaultAsync(
+            predicate: x => x.Name.Trim().ToLower().Equals(createStoryRequest.CityLocation.Trim().ToLower())
+        );
+        if (location == null)
+            throw new BadHttpRequestException("Không thể tìm thấy thành phố trên Việt Nam");
         var story = _mapper.Map<Story>(createStoryRequest);
         var extension = Path.GetExtension(createStoryRequest.ImageFile.FileName).ToLower();
         var allowedImageExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
@@ -67,13 +74,31 @@ public class StoryService : BaseService<StoryService>, IStoryService
         story.UserId = user.Id;
         await _unitOfWork.GetRepository<Story>().InsertAsync(story);
 
+        string? passportImage = null;
+        var memberLocation = await _unitOfWork.GetRepository<MemberLocation>().SingleOrDefaultAsync(
+            predicate: ml => ml.LocationId == location.Id && ml.MemberId == user.Id
+        );
+        if (memberLocation == null)
+        {
+            memberLocation = new MemberLocation
+            {
+                Id = Guid.NewGuid(),
+                LocationId = location.Id,
+                MemberId = user.Id
+            };
+            await _unitOfWork.GetRepository<MemberLocation>().InsertAsync(memberLocation);
+            passportImage = await _craftMyPdfService.GeneratePassport(user, location);
+            if (string.IsNullOrEmpty(passportImage)) throw new Exception("Lỗi khi tạo Passport");
+        }
+
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
 
         if (!isSuccess)
             throw new Exception("Failed to create story");
-        var result = _mapper.Map<StoryResponse>(story);
+        var result = _mapper.Map<CreateStoryResponse>(story);
         result.Username = user.Username;
         result.AvatarUrl = user.AvatarUrl;
+        result.PassportImage = passportImage;
         return result;
     }
 

@@ -24,15 +24,15 @@ public class StoryController : BaseController<StoryController>
     }
 
     [HttpPost(ApiEndPointConstant.Story.StoryEndpoint)]
-    [ProducesResponseType(typeof(ApiSuccessResult<StoryResponse>), StatusCodes.Status200OK)]
-    public async Task<ApiResult<StoryResponse>> AddStory([FromForm] CreateStoryRequest request)
+    [ProducesResponseType(typeof(ApiSuccessResult<CreateStoryResponse>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<CreateStoryResponse>> AddStory([FromForm] CreateStoryRequest request)
     {
         _logger.Information($"BEGIN: {nameof(AddStory)} - {DateTime.UtcNow}");
         var result = await _storyService.CreateStoryAsync(User.GetUsername(), request);
         _logger.Information($"END: {nameof(AddStory)} - {DateTime.UtcNow}");
-        return new ApiSuccessResult<StoryResponse>(result);
+        return new ApiSuccessResult<CreateStoryResponse>(result);
     }
-
+    
     [HttpGet(ApiEndPointConstant.Story.StoryEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<List<StoryResponse>>), StatusCodes.Status200OK)]
     public async Task<ApiResult<List<StoryResponse>>> GetStories(string? searchTerm)

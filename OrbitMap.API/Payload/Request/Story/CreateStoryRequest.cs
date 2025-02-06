@@ -8,4 +8,6 @@ public class CreateStoryRequest
     public string? Content { get; set; }
     [Required] public IFormFile ImageFile { get; set; }
     public string? Weather { get; set; }
+
+    [Required] public string CityLocation { get; set; }
 }
