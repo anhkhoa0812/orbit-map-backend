@@ -38,7 +38,7 @@ public class UserService : BaseService<UserService>, IUserService
     public async Task<LoginResponse> Login(LoginRequest loginRequest)
     {
         Expression<Func<User, bool>> searchFilter = p =>
-            p.Username.Equals(loginRequest.Username) &&
+            (p.Username.Equals(loginRequest.Username) || p.PhoneNumber.Equals(loginRequest.Username)) &&
             p.PasswordHash.Equals(PasswordUtil.HashPassword(loginRequest.Password));
         var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
             predicate: searchFilter,
