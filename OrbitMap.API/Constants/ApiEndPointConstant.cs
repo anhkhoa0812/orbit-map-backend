@@ -36,6 +36,7 @@ public static class ApiEndPointConstant
         public const string AddFriend = FriendshipEndpoint + "/add";
         public const string UpdateFriendStatus = FriendshipEndpoint + "/update";
         public const string GetFriendsForUser = FriendshipEndpoint;
+        public const string GetRecommendFriendsForUser = FriendshipEndpoint + "/recommend";
     }
 
     public static class LastMessageChat

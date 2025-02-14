@@ -8,9 +8,12 @@ namespace OrbitMap.API.Services.Interface;
 
 public interface IFriendshipService
 {
-    Task<FriendResponse> AddFriendAsync(AddFriendRequest request);
+    Task<List<FriendResponse>> AddFriendAsync(AddFriendRequest request);
 
     Task<FriendResponse> UpdateFriendStatus(UpdateFriendStatusRequest request);
 
-    Task<IPaginate<UserDto>> GetFriendsForUser(int page, int size, string? searchItem, string status);
+    Task<IPaginate<FriendWithUserResponse>> GetFriendsForUser(int page, int size, string? searchItem, string status);
+
+    Task<IPaginate<FriendWithUserResponse>> GetRecommendFriendsForUser(string username, int page, int size,
+        List<string> phoneNumbers);
 }

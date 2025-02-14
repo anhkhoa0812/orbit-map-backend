@@ -1,100 +1,64 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using OrbitMap.API.Helper;
 using OrbitMap.API.Services.Interface;
+using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.SignalR;
 
 [Authorize]
 public class DeviceHub : Hub
 {
-    private static readonly Dictionary<string, Dictionary<string, string>> UserDeviceConnections = new();
-    // private readonly IRedisService _redisService;
-    //
-    // public DeviceHub(IRedisService redisService)
-    // {
-    //     _redisService = redisService;
-    // }
+    private readonly DeviceTracker _tracker;
+    private readonly ILogger _logger;
+
+    public DeviceHub(DeviceTracker tracker, ILogger logger)
+    {
+        _tracker = tracker;
+        _logger = logger;
+    }
 
     public override async Task OnConnectedAsync()
     {
-        var username = Context.GetHttpContext()?.Request.Query["username"];
-        var subscriptionId = Context.GetHttpContext()?.Request.Query["subscriptionId"];
-
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(subscriptionId))
+        var username = Context.User.GetUsername();
+        if (string.IsNullOrEmpty(username))
         {
-            throw new HubException("Không tìm thấy thông tin đăng nhập");
+            Context.Abort();
+            return;
         }
 
-        // var connectionKey = $"{username}:{subscriptionId}";
-        // await _redisService.PushToListAsync(connectionKey, Context.ConnectionId);
-
-        lock (UserDeviceConnections)
+        var httpContext = Context.GetHttpContext();
+        var subscriptionId = httpContext?.Request.Query["subscriptionId"];
+        if (string.IsNullOrEmpty(subscriptionId))
         {
-            if (!UserDeviceConnections.ContainsKey(username!))
-            {
-                UserDeviceConnections[username!] = new Dictionary<string, string>();
-            }
+            Context.Abort();
+            return;
+        }
 
-            UserDeviceConnections[username!][subscriptionId!] = Context.ConnectionId;
+        // Context.Items["subscriptionId"] = subscriptionId;
+
+        var previousDevice = await _tracker.RegisterDeviceAsync(username, subscriptionId, Context.ConnectionId);
+        if (previousDevice != null && !previousDevice.SubscriptionId.Equals(subscriptionId))
+        {
+            _logger.Information(
+                $"User {username} has logged in from another device. SubscriptionId: {previousDevice.SubscriptionId}");
+            await Clients.Client(previousDevice.ConnectionId)
+                .SendAsync("ForceLogout", "A new device has connected with your account.");
         }
 
         await base.OnConnectedAsync();
     }
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        // var username = Context.GetHttpContext()?.Request.Query["username"];
-        // var subscriptionId = Context.GetHttpContext()?.Request.Query["subscriptionId"];
-        //
-        // if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(subscriptionId))
-        // {
-        //     var connectionKey = $"{username}:{subscriptionId}";
-        //     await _redisService.RemoveFromListAsync(connectionKey, Context.ConnectionId);
-        // }
-        var username = string.Empty;
-        var deviceId = string.Empty;
-        lock (UserDeviceConnections)
-        {
-            username = UserDeviceConnections.FirstOrDefault(x => x.Value.ContainsValue(Context.ConnectionId)).Key;
-            if (!string.IsNullOrEmpty(username))
-            {
-                deviceId = UserDeviceConnections[username!].FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
-                UserDeviceConnections[username!].Remove(deviceId!);
-
-                if (UserDeviceConnections[username!].Count == 0)
-                {
-                    UserDeviceConnections.Remove(username!);
-                }
-            }
-        }
-
-        await base.OnDisconnectedAsync(exception);
-    }
-
-    public async Task ForceLogout(string username, string subscriptionId)
-    {
-        // var connectionKey = $"{username}:{subscriptionId}";
-        // var connectionIds = await _redisService.GetListAsync(connectionKey);
-        // if (connectionIds.Count > 0)
-        // {
-        //     foreach (var connectionId in connectionIds)
-        //     {
-        //     }
-        // }
-
-        if (UserDeviceConnections.ContainsKey(username) && UserDeviceConnections[username].Count > 0)
-        {
-            foreach (var entry in UserDeviceConnections[username])
-            {
-                if (entry.Key != subscriptionId)
-                {
-                    var connectionId = entry.Value;
-                    if (!string.IsNullOrEmpty(connectionId))
-                    {
-                        await Clients.Client(connectionId).SendAsync("Logout");
-                    }
-                }
-            }
-        }
-    }
+    // public override async Task OnDisconnectedAsync(Exception? exception)
+    // {
+    //     var username = Context.User.GetUsername();
+    //
+    //     if (!string.IsNullOrEmpty(username) && Context.Items.TryGetValue("subscriptionId", out var subIdObj) &&
+    //         subIdObj is string subscriptionId)
+    //     {
+    //         await _tracker.UnregisterDeviceAsync(username, subscriptionId, Context.ConnectionId);
+    //     }
+    //
+    //     await base.OnDisconnectedAsync(exception);
+    // }
 }

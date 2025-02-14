@@ -12,9 +12,7 @@ public class Story : EntityAuditBase<Guid>
     [Column(TypeName = "varchar")]
     public string MediaUrl { get; set; }
 
-    [Required]
-    [Column(TypeName = "varchar(50)")]
-    public string Location { get; set; } //Cần xem lại tách ra 1 bảng riêng
+    [Column(TypeName = "varchar(50)")] public string? Location { get; set; }
 
     [Column(TypeName = "varchar(50)")] public string? Weather { get; set; }
 

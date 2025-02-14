@@ -21,16 +21,16 @@ public class TestController : BaseController<TestController>
     private readonly ICraftMyPdfService _craftMyPdfService;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork<OrbitMapContext> _unitOfWork;
-    private readonly PresenceTracker _tracker;
+    private readonly IVideoService _videoService;
 
     public TestController(ILogger logger, ICraftMyPdfService craftMyPdfService, IMapper mapper,
-        IUnitOfWork<OrbitMapContext> unitOfWork, PresenceTracker tracker) :
+        IUnitOfWork<OrbitMapContext> unitOfWork, IVideoService videoService) :
         base(logger)
     {
         _craftMyPdfService = craftMyPdfService;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
-        _tracker = tracker;
+        _videoService = videoService;
     }
 
     // [HttpGet]
@@ -40,25 +40,6 @@ public class TestController : BaseController<TestController>
     //     return Ok(result);
     // }
 
-    [HttpGet("/connections")]
-    public async Task<IActionResult> GetConnections()
-    {
-        var username = User.GetUsername();
-        var friends = await GetUsersOnlineAsync(username);
-        var allConnections = new List<string>();
-
-        // Lặp qua từng bạn bè và lấy danh sách connections, đồng thời kiểm tra null
-        foreach (var friend in friends)
-        {
-            var connections = await _tracker.GetConnectionsForUser(friend.Username);
-            if (connections != null && connections.Any())
-            {
-                allConnections.AddRange(connections);
-            }
-        }
-
-        return Ok(allConnections);
-    }
 
     private async Task<List<UserDto>> GetUsersOnlineAsync(string currentUsername)
     {
@@ -80,10 +61,11 @@ public class TestController : BaseController<TestController>
         return result;
     }
 
-    [HttpGet("/onlineUser")]
-    public async Task<IActionResult> GetOnlineUsers()
+
+    [HttpPost("/video")]
+    public async Task<IActionResult> CreateVideoTimeLapse([FromBody] string[] images)
     {
-        var onlineUsers = await _tracker.GetOnlineUsers();
-        return Ok(onlineUsers);
+        var result = await _videoService.CreateVideoTimeLapse(images);
+        return Ok(result);
     }
 }

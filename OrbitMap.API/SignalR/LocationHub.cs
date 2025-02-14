@@ -42,13 +42,14 @@ public class LocationHub : Hub
         var friends = await GetFriends(username);
         var friendUsernames = friends.Select(f => f.Username).ToList();
 
-        var locations = _tracker.GetLocationsForUsers(friendUsernames);
+        var locations = await _tracker.GetLocationsForUsers(friendUsernames);
+        _logger.Information($"Friend's location for {username} with {locations.Count} friends: {locations}");
         if (locations.Any())
         {
             await Clients.Caller.SendAsync("ReceiveInitialLocations", locations);
         }
     }
-    
+
 
     public async Task UpdateUserLocation(UpdateUserLocationRequest request)
     {
@@ -79,7 +80,7 @@ public class LocationHub : Hub
             await Clients.Users(friendUsernames).SendAsync("ReceiveUserLocation", userLocation);
             _logger.Information("Location update sent from {Username} to {FriendCount} friends.",
                 username, friendUsernames.Count);
-            _tracker.UpdateUserLocation(username, userLocation);
+            await _tracker.UpdateUserLocation(username, userLocation);
         }
         catch (Exception e)
         {

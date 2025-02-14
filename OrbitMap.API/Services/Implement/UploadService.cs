@@ -33,7 +33,7 @@ public class UploadService : BaseService<UploadService>, IUploadService
             throw new BadHttpRequestException("Không tìm thấy file");
         }
 
-        var allowedExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
+        var allowedExtensions = new[] { ".jpeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
         var extension = Path.GetExtension(file.FileName).ToLower();
 
         if (!allowedExtensions.Contains(extension))
@@ -50,13 +50,17 @@ public class UploadService : BaseService<UploadService>, IUploadService
                 .WithObject($"{Guid.NewGuid().ToString()}{extension}")
                 .WithStreamData(file.OpenReadStream())
                 .WithObjectSize(file.Length)
+                .WithContentType("image/jpeg")
             );
             if (result == null)
                 throw new MinioException("Failed to upload image");
+            var reqParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                { { "response-content-type", "image/jpeg" } };
             var presignedUrlArgs = new PresignedGetObjectArgs()
                 .WithBucket(_awsSettings.BucketName) // Your bucket name
                 .WithObject(result.ObjectName)
-                .WithExpiry(604800);
+                .WithExpiry(604800)
+                .WithHeaders(reqParams);
             var url = await minio.PresignedGetObjectAsync(presignedUrlArgs);
             return url;
         }

@@ -25,6 +25,7 @@ public static class ServiceExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<INewsService, NewsService>();
         services.AddScoped<IBusinessService, BusinessService>();
+        services.AddScoped<IVideoService, VideoService>();
         return services;
     }
 

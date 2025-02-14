@@ -42,6 +42,8 @@ try
     builder.Services.AddSwaggerGen();
     builder.Services.AddSignalR(options => { options.EnableDetailedErrors = true; });
     builder.Services.AddSingleton<PresenceTracker>();
+    builder.Services.AddScoped<LocationTracker>();
+    builder.Services.AddScoped<DeviceTracker>();
     builder.Services.AddJwtValidation();
     builder.Services.AddConfigSwagger();
     builder.Services.AddHttpContextAccessor();

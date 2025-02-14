@@ -17,6 +17,11 @@ public class RedisService : IRedisService
         return await _db.StringGetAsync(key);
     }
 
+    public async Task<RedisValue[]> GetStringListAsync(RedisKey[] keys)
+    {
+        return await _db.StringGetAsync(keys);
+    }
+
     public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)
     {
         return await _db.StringSetAsync(key, value, expiry);

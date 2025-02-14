@@ -7,17 +7,19 @@ public class SmsUtil
     public static string GenerateOtp()
     {
         Random random = new Random();
-        return random.Next(100000, 999999).ToString();
+        return random.Next(1000, 9999).ToString();
     }
+
     public static String SendSMS(String[] phones, String content, IConfiguration configuration)
     {
         String url = configuration["SMS:base_url"] + "/sms/send";
         if (phones.Length <= 0)
             return "";
-        
+
         int type = 5;
         String sender = configuration["SMS:device_id"];
-        NetworkCredential myCreds = new NetworkCredential(configuration["SMS:access_token"], configuration["SMS:password"]);
+        NetworkCredential myCreds =
+            new NetworkCredential(configuration["SMS:access_token"], configuration["SMS:password"]);
         WebClient client = new WebClient();
         client.Credentials = myCreds;
         client.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -32,7 +34,9 @@ public class SmsUtil
                 builder += ",";
             }
         }
-        builder += "], \"content\": \"" + Uri.EscapeDataString(content) + "\", \"type\":" + type + ", \"sender\": \"" + sender + "\"}";
+
+        builder += "], \"content\": \"" + Uri.EscapeDataString(content) + "\", \"type\":" + type + ", \"sender\": \"" +
+                   sender + "\"}";
 
         String json = builder.ToString();
         return client.UploadString(url, json);

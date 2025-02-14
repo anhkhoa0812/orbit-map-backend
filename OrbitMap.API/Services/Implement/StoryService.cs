@@ -33,6 +33,74 @@ public class StoryService : BaseService<StoryService>, IStoryService
         _craftMyPdfService = craftMyPdfService;
     }
 
+    // public async Task<CreateStoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest)
+    // {
+    //     if (string.IsNullOrEmpty(username))
+    //         throw new AuthenticationException("Unauthorized");
+    //
+    //     var user = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+    //         predicate: x => x.Username.Equals(username)
+    //     );
+    //     if (user == null)
+    //         throw new AuthenticationException("Unauthorized");
+    //     var location = await _unitOfWork.GetRepository<Location>().SingleOrDefaultAsync(
+    //         predicate: x => x.Name.Trim().ToLower().Equals(createStoryRequest.CityLocation.Trim().ToLower())
+    //     );
+    //     if (location == null)
+    //         throw new BadHttpRequestException("Không thể tìm thấy thành phố trên Việt Nam");
+    //     var story = _mapper.Map<Story>(createStoryRequest);
+    //     var extension = Path.GetExtension(createStoryRequest.ImageFile.FileName).ToLower();
+    //     var allowedImageExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
+    //     if (createStoryRequest.ImageFile != null)
+    //     {
+    //         if (extension.Equals(".mp4"))
+    //         {
+    //             if (user.IsPremium)
+    //             {
+    //                 story.MediaUrl = await _uploadService.UploadVideoAsync(createStoryRequest.ImageFile);
+    //             }
+    //         }
+    //         else if (allowedImageExtensions.Contains(extension))
+    //         {
+    //             story.MediaUrl = await _uploadService.UploadImageAsync(createStoryRequest.ImageFile);
+    //         }
+    //         else
+    //         {
+    //             throw new BadHttpRequestException("Invalid file format");
+    //         }
+    //     }
+    //
+    //     story.ExpirationDate = DateTime.UtcNow.AddHours(24);
+    //     story.UserId = user.Id;
+    //     await _unitOfWork.GetRepository<Story>().InsertAsync(story);
+    //
+    //     string? passportImage = null;
+    //     var memberLocation = await _unitOfWork.GetRepository<MemberLocation>().SingleOrDefaultAsync(
+    //         predicate: ml => ml.LocationId == location.Id && ml.MemberId == user.Id
+    //     );
+    //     if (memberLocation == null)
+    //     {
+    //         memberLocation = new MemberLocation
+    //         {
+    //             Id = Guid.NewGuid(),
+    //             LocationId = location.Id,
+    //             MemberId = user.Id
+    //         };
+    //         await _unitOfWork.GetRepository<MemberLocation>().InsertAsync(memberLocation);
+    //         passportImage = await _craftMyPdfService.GeneratePassport(user, location);
+    //         if (string.IsNullOrEmpty(passportImage)) throw new Exception("Lỗi khi tạo Passport");
+    //     }
+    //
+    //     var isSuccess = await _unitOfWork.CommitAsync() > 0;
+    //
+    //     if (!isSuccess)
+    //         throw new Exception("Failed to create story");
+    //     var result = _mapper.Map<CreateStoryResponse>(story);
+    //     result.Username = user.Username;
+    //     result.AvatarUrl = user.AvatarUrl;
+    //     result.PassportImage = passportImage;
+    //     return result;
+    // }
     public async Task<CreateStoryResponse> CreateStoryAsync(string username, CreateStoryRequest createStoryRequest)
     {
         if (string.IsNullOrEmpty(username))
@@ -48,21 +116,23 @@ public class StoryService : BaseService<StoryService>, IStoryService
         );
         if (location == null)
             throw new BadHttpRequestException("Không thể tìm thấy thành phố trên Việt Nam");
+
         var story = _mapper.Map<Story>(createStoryRequest);
-        var extension = Path.GetExtension(createStoryRequest.ImageFile.FileName).ToLower();
-        var allowedImageExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
+        Task<string>? mediaUploadTask = null;
         if (createStoryRequest.ImageFile != null)
         {
+            var extension = Path.GetExtension(createStoryRequest.ImageFile.FileName).ToLower();
+            var allowedImageExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
             if (extension.Equals(".mp4"))
             {
                 if (user.IsPremium)
                 {
-                    story.MediaUrl = await _uploadService.UploadVideoAsync(createStoryRequest.ImageFile);
+                    mediaUploadTask = _uploadService.UploadVideoAsync(createStoryRequest.ImageFile);
                 }
             }
             else if (allowedImageExtensions.Contains(extension))
             {
-                story.MediaUrl = await _uploadService.UploadImageAsync(createStoryRequest.ImageFile);
+                mediaUploadTask = _uploadService.UploadImageAsync(createStoryRequest.ImageFile);
             }
             else
             {
@@ -70,23 +140,52 @@ public class StoryService : BaseService<StoryService>, IStoryService
             }
         }
 
+        var memberLocationTask = _unitOfWork.GetRepository<MemberLocation>().SingleOrDefaultAsync(
+            predicate: ml => ml.LocationId == location.Id && ml.MemberId == user.Id
+        );
+        if (mediaUploadTask != null)
+        {
+            story.MediaUrl = await mediaUploadTask;
+        }
+
         story.ExpirationDate = DateTime.UtcNow.AddHours(24);
         story.UserId = user.Id;
         await _unitOfWork.GetRepository<Story>().InsertAsync(story);
 
         string? passportImage = null;
-        var memberLocation = await _unitOfWork.GetRepository<MemberLocation>().SingleOrDefaultAsync(
-            predicate: ml => ml.LocationId == location.Id && ml.MemberId == user.Id
-        );
+        var memberLocation = await memberLocationTask;
         if (memberLocation == null)
         {
-            memberLocation = new MemberLocation
+            if (location.Id.Equals("vnHN") || location.Id.Equals("vn15"))
             {
-                Id = Guid.NewGuid(),
-                LocationId = location.Id,
-                MemberId = user.Id
-            };
-            await _unitOfWork.GetRepository<MemberLocation>().InsertAsync(memberLocation);
+                var hanoiMemberLocation = new List<MemberLocation>()
+                {
+                    new MemberLocation
+                    {
+                        Id = Guid.NewGuid(),
+                        LocationId = "vnHN",
+                        MemberId = user.Id
+                    },
+                    new MemberLocation
+                    {
+                        Id = Guid.NewGuid(),
+                        LocationId = "vn15",
+                        MemberId = user.Id
+                    }
+                };
+                await _unitOfWork.GetRepository<MemberLocation>().InsertRangeAsync(hanoiMemberLocation);
+            }
+            else
+            {
+                memberLocation = new MemberLocation
+                {
+                    Id = Guid.NewGuid(),
+                    LocationId = location.Id,
+                    MemberId = user.Id
+                };
+                await _unitOfWork.GetRepository<MemberLocation>().InsertAsync(memberLocation);
+            }
+
             passportImage = await _craftMyPdfService.GeneratePassport(user, location);
             if (string.IsNullOrEmpty(passportImage)) throw new Exception("Lỗi khi tạo Passport");
         }
@@ -101,6 +200,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
         result.PassportImage = passportImage;
         return result;
     }
+
 
     public async Task<List<StoryResponse>> GetStoriesByUserAsync(string username, string? searchTerm)
     {

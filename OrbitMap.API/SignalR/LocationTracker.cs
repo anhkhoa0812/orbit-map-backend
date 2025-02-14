@@ -1,25 +1,43 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using OrbitMap.API.Payload.Response.Location;
+using OrbitMap.API.Services.Interface;
+using StackExchange.Redis;
 
 namespace OrbitMap.API.SignalR;
 
 public class LocationTracker
 {
     private static readonly ConcurrentDictionary<string, UserLocationDto> UserLocations = new();
+    private readonly IRedisService _redisService;
+    private const string LocationPrefixKey = "UserLocation:";
 
-    public void UpdateUserLocation(string username, UserLocationDto location)
+    public LocationTracker(IRedisService redisService)
     {
-        UserLocations.AddOrUpdate(username, location, (key, oldValue) => location);
+        _redisService = redisService;
     }
 
-    public UserLocationDto GetUserLocation(string username)
+    public async Task UpdateUserLocation(string username, UserLocationDto location)
     {
-        UserLocations.TryGetValue(username, out var location);
-        return location;
+        // UserLocations.AddOrUpdate(username, location, (key, oldValue) => location);
+        var json = JsonSerializer.Serialize(location);
+        await _redisService.SetStringAsync($"{LocationPrefixKey}{username}", json);
     }
 
-    public List<UserLocationDto> GetLocationsForUsers(List<string> usernames)
+    private async Task<UserLocationDto> GetUserLocation(string username)
     {
-        return usernames.Select(u => GetUserLocation(u)).Where(l => l != null).ToList();
+        // UserLocations.TryGetValue(username, out var location);
+        // return location;
+        var json = await _redisService.GetStringAsync($"{LocationPrefixKey}{username}");
+        return JsonSerializer.Deserialize<UserLocationDto>(json)!;
+    }
+
+    public Task<List<UserLocationDto>> GetLocationsForUsers(List<string> usernames)
+    {
+        // return usernames.Select(u => GetUserLocation(u)).Where(l => l != null).ToList();
+        // var keys = usernames.Select(u => (RedisKey)$"{LocationPrefixKey}{u}").ToArray();
+        // var results = await _redisService.GetStringListAsync(keys);
+        return Task.FromResult(usernames.Select(u => GetUserLocation(u).Result).Where(l => l != null).ToList());
     }
 }

@@ -20,6 +20,8 @@ public static class AutoMapperUtil
             }
         }
 
+        expression.ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
         return expression;
     }
 }

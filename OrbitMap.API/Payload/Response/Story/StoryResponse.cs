@@ -17,12 +17,18 @@ public class StoryResponse
     public DateTime ExpirationDate { get; set; }
     public string? AvatarUrl { get; set; }
 
-    public string HumanizedTime => DateTime.UtcNow.AddHours(CreatedDate.Hour - DateTime.UtcNow.Hour).Humanize(
-        culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN"))
-    ).Transform(To.SentenceCase);
-    // public string HumanizedTimes => (DateTime.UtcNow - CreatedDate).Humanize(
-    //     precision: 1,
-    //     culture: System.Globalization.CultureInfo.GetCultureInfo("vi-VN"),
-    //     TimeUnit.Day
-    // );
+    // public string HumanizedTime => DateTime.UtcNow.AddHours(CreatedDate.Hour - DateTime.UtcNow.Hour).Humanize(
+    //     culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN"))
+    // ).Transform(To.SentenceCase);
+    public string HumanizedTime
+    {
+        get
+        {
+            string humanized = (DateTime.UtcNow - CreatedDate)
+                .Humanize(culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN")))
+                .Transform(To.SentenceCase);
+
+            return humanized.Contains("giây") ? "Bây giờ" : humanized + " trước";
+        }
+    }
 }
