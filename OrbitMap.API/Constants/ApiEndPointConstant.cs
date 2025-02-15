@@ -50,6 +50,7 @@ public static class ApiEndPointConstant
         public const string StoryWithId = StoryEndpoint + "/{id}";
         public const string ReplyStory = StoryEndpoint + "/reply";
         public const string StoryByMonth = StoryEndpoint + "/month";
+        public const string StoryTimeLapse = StoryEndpoint + "/time-lapse";
     }
 
     public static class Payment

@@ -9,6 +9,7 @@ using OrbitMap.API.Payload.Response.Message;
 using OrbitMap.API.Payload.Response.Story;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.SignalR;
+using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
@@ -127,7 +128,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
             {
                 if (user.IsPremium)
                 {
-                    mediaUploadTask = _uploadService.UploadVideoAsync(createStoryRequest.ImageFile);
+                    mediaUploadTask = _uploadService.UploadVideoAsync(createStoryRequest.ImageFile, true);
                 }
             }
             else if (allowedImageExtensions.Contains(extension))
@@ -333,12 +334,21 @@ public class StoryService : BaseService<StoryService>, IStoryService
             predicate: x => x.UserId == member.Id,
             include: x => x.Include(x => x.Member)
         );
-        var result = stories.GroupBy(x => new { x.CreatedDate.Year, x.CreatedDate.Month })
+        var storyResponses = new List<StoryResponse>();
+        foreach (var story in stories)
+        {
+            var storyResponse = _mapper.Map<StoryResponse>(story);
+            // Call helper method to get the resized image as a Base64 data URL.
+            storyResponse.MediaUrl = await ImageUtil.ResizeImage(story.MediaUrl);
+            storyResponses.Add(storyResponse);
+        }
+
+        var result = storyResponses.GroupBy(x => new { x.CreatedDate.Year, x.CreatedDate.Month })
             .Select(x => new StoryByMonthResponse
             {
                 Year = x.Key.Year,
                 Month = x.Key.Month,
-                Stories = _mapper.Map<List<StoryResponse>>(x.ToList())
+                Stories = x.ToList()
             }).OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).ToList();
         return result;
     }

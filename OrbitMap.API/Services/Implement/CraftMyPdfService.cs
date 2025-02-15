@@ -41,7 +41,7 @@ public class CraftMyPdfService : BaseService<CraftMyPdfService>, ICraftMyPdfServ
             data = JsonConvert.SerializeObject(data),
             output_file = "output.jpg",
             export_type = "json",
-            expiration = 10,
+            expiration = 604800,
             template_id = _settings.TemplateId
         };
         using (var client = new HttpClient())

@@ -61,11 +61,11 @@ public class TestController : BaseController<TestController>
         return result;
     }
 
-
-    [HttpPost("/video")]
-    public async Task<IActionResult> CreateVideoTimeLapse([FromBody] string[] images)
-    {
-        var result = await _videoService.CreateVideoTimeLapse(images);
-        return Ok(result);
-    }
+    //
+    // [HttpPost("/video")]
+    // public async Task<IActionResult> CreateVideoTimeLapse([FromBody] string[] images)
+    // {
+    //     var result = await _videoService.CreateVideoTimeLapse(images);
+    //     return Ok(result);
+    // }
 }

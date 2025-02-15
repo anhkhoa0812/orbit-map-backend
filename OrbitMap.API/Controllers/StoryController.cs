@@ -17,10 +17,12 @@ namespace OrbitMap.API.Controllers;
 public class StoryController : BaseController<StoryController>
 {
     private readonly IStoryService _storyService;
+    private readonly IVideoService _videoService;
 
-    public StoryController(ILogger logger, IStoryService storyService) : base(logger)
+    public StoryController(ILogger logger, IStoryService storyService, IVideoService videoService) : base(logger)
     {
         _storyService = storyService;
+        _videoService = videoService;
     }
 
     [HttpPost(ApiEndPointConstant.Story.StoryEndpoint)]
@@ -32,7 +34,7 @@ public class StoryController : BaseController<StoryController>
         _logger.Information($"END: {nameof(AddStory)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<CreateStoryResponse>(result);
     }
-    
+
     [HttpGet(ApiEndPointConstant.Story.StoryEndpoint)]
     [ProducesResponseType(typeof(ApiSuccessResult<List<StoryResponse>>), StatusCodes.Status200OK)]
     public async Task<ApiResult<List<StoryResponse>>> GetStories(string? searchTerm)
@@ -71,5 +73,15 @@ public class StoryController : BaseController<StoryController>
         var result = await _storyService.GetStoriesByMonthAsync(User.GetUsername());
         _logger.Information($"END: {nameof(GetStoriesByMonth)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<List<StoryByMonthResponse>>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.Story.StoryTimeLapse)]
+    [ProducesResponseType(typeof(ApiSuccessResult<string>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<string>> GetStoryTimeLapse([Required] CreateStoryTimeLapseRequest request)
+    {
+        _logger.Information($"BEGIN: {nameof(GetStoryTimeLapse)} - {DateTime.UtcNow}");
+        var result = await _videoService.CreateVideoTimeLapse(request);
+        _logger.Information($"END: {nameof(GetStoryTimeLapse)} - {DateTime.UtcNow}");
+        return new ApiSuccessResult<string>(result);
     }
 }

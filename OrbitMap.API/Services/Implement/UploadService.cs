@@ -45,17 +45,77 @@ public class UploadService : BaseService<UploadService>, IUploadService
                 .WithEndpoint(_awsSettings.EndPoint)
                 .WithCredentials(_awsSettings.AccessKey, _awsSettings.SecretKey)
                 .Build();
+
+            var headers = new Dictionary<string, string>
+            {
+                { "x-amz-acl", "public-read" }
+            };
+            var objectName = $"{Guid.NewGuid().ToString()}{extension}";
+            var result = await minio.PutObjectAsync(new PutObjectArgs()
+                .WithBucket(_awsSettings.BucketName)
+                .WithObject(objectName)
+                .WithStreamData(file.OpenReadStream())
+                .WithObjectSize(file.Length)
+                .WithContentType("image/jpeg")
+                .WithHeaders(headers)
+            );
+            if (result == null)
+                throw new MinioException("Failed to upload image");
+            // var reqParams = new Dictionary<string, string>(StringComparer.Ordinal)
+            //     { { "response-content-type", "image/jpeg" } };
+            // var presignedUrlArgs = new PresignedGetObjectArgs()
+            //     .WithBucket(_awsSettings.BucketName) // Your bucket name
+            //     .WithObject(result.ObjectName)
+            //     .WithExpiry(604800)
+            //     .WithHeaders(reqParams);
+            // var url = await minio.PresignedGetObjectAsync(presignedUrlArgs);
+            // return url;
+            return $"https://{_awsSettings.EndPoint}/{_awsSettings.BucketName}/{objectName}";
+        }
+        catch (Exception e)
+        {
+            _logger.Error($"Failed to upload image: {e.Message}");
+            throw new Exception("Failed to upload image", e);
+        }
+    }
+
+    public async Task<string> UploadVideoAsync(IFormFile file, bool isStory)
+    {
+        if (file == null || file.Length == 0)
+        {
+            throw new BadHttpRequestException("Không tìm thấy file");
+        }
+
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        if (!extension.Equals(".mp4"))
+        {
+            throw new InvalidOperationException("Chỉ các định dạng tệp mp4 được phép tải lên.");
+        }
+
+        if (isStory)
+        {
+            var duration = GetVideoDurationAsync(file);
+            if (duration.Result.TotalSeconds > 5)
+                throw new BadHttpRequestException("Video dài quá 5 giây");
+        }
+
+        try
+        {
+            var minio = new MinioClient()
+                .WithEndpoint(_awsSettings.EndPoint)
+                .WithCredentials(_awsSettings.AccessKey, _awsSettings.SecretKey)
+                .Build();
             var result = await minio.PutObjectAsync(new PutObjectArgs()
                 .WithBucket(_awsSettings.BucketName)
                 .WithObject($"{Guid.NewGuid().ToString()}{extension}")
                 .WithStreamData(file.OpenReadStream())
                 .WithObjectSize(file.Length)
-                .WithContentType("image/jpeg")
+                .WithContentType("video/mp4")
             );
             if (result == null)
-                throw new MinioException("Failed to upload image");
+                throw new MinioException("Failed to upload video");
             var reqParams = new Dictionary<string, string>(StringComparer.Ordinal)
-                { { "response-content-type", "image/jpeg" } };
+                { { "response-content-type", "video/mp4" } };
             var presignedUrlArgs = new PresignedGetObjectArgs()
                 .WithBucket(_awsSettings.BucketName) // Your bucket name
                 .WithObject(result.ObjectName)
@@ -66,8 +126,8 @@ public class UploadService : BaseService<UploadService>, IUploadService
         }
         catch (Exception e)
         {
-            _logger.Error($"Failed to upload image: {e.Message}");
-            throw new Exception("Failed to upload image", e);
+            _logger.Error($"Failed to upload video: {e.Message}");
+            throw new Exception("Failed to upload video", e);
         }
     }
     // public async Task<string> UploadImageAsync(IFormFile file)
@@ -166,62 +226,27 @@ public class UploadService : BaseService<UploadService>, IUploadService
     //     }
     // }
 
-    public async Task<string> UploadVideoAsync(IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            throw new BadHttpRequestException("Không tìm thấy file");
-        }
-
-        var extension = Path.GetExtension(file.FileName).ToLower();
-        if (!extension.Equals(".mp4"))
-        {
-            throw new InvalidOperationException("Chỉ các định dạng tệp mp4 được phép tải lên.");
-        }
-
-        var duration = GetVideoDurationAsync(file);
-        if (duration.Result.TotalSeconds > 5)
-            throw new BadHttpRequestException("Video dài quá 5 giây");
-        try
-        {
-            using var fileStream = file.OpenReadStream();
-            byte[] fileBytes = new byte[file.Length];
-            await fileStream.ReadAsync(fileBytes, 0, (int)file.Length);
-
-            if (!Directory.Exists(_settings.VideoPath))
-            {
-                Directory.CreateDirectory(_settings.VideoPath);
-            }
-
-            string fileName = $"{Guid.NewGuid()}{extension}";
-            string filePath = Path.Combine(_settings.VideoPath, fileName);
-
-            await using (var outputFileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await outputFileStream.WriteAsync(fileBytes, 0, fileBytes.Length);
-            }
-
-            return $"{_settings.VideoPathUrl}{fileName}";
-        }
-        catch (Exception e)
-        {
-            _logger.Error($"Failed to upload video: {e.Message}");
-            throw new Exception("Failed to upload video", e);
-        }
-    }
 
     private async Task<TimeSpan> GetVideoDurationAsync(IFormFile file)
     {
-        var temPath = Path.GetTempFileName();
-
-        using (var stream = new FileStream(temPath, FileMode.Create))
+        GlobalFFOptions.Configure(options => options.BinaryFolder = @"C:\ffmpeg\bin");
+        var tempPath = Path.GetTempFileName();
+        try
         {
-            await file.CopyToAsync(stream);
+            using (var stream = new FileStream(tempPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var mediaInfo = await FFProbe.AnalyseAsync(tempPath);
+            return mediaInfo.Duration;
         }
-
-        var mediaInfo = await FFProbe.AnalyseAsync(temPath);
-        File.Delete(temPath);
-
-        return mediaInfo.Duration;
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
     }
 }
