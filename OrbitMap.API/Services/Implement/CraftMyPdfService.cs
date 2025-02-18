@@ -31,10 +31,11 @@ public class CraftMyPdfService : BaseService<CraftMyPdfService>, ICraftMyPdfServ
         {
             name = member.DisplayName,
             id = member.Username,
-            gender = "Nam",
             birthday = member.Birthday.ToString(),
             profile_picture = member.AvatarUrl,
-            location_picture = location.Image
+            location_picture = location.Image,
+            location = location.Name,
+            rank = member.IsPremium ? "Vàng" : "Bạc"
         };
         var jsonPayload = new
         {

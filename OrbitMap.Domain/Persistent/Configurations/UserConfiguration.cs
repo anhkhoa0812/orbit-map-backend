@@ -32,6 +32,8 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
 {
     public void Configure(EntityTypeBuilder<Member> builder)
     {
+        builder.Property(x => x.Birthday)
+            .HasColumnType("date");
         builder.HasData(new Member
         {
             Id = Guid.Parse("b1cc911f-7d57-4043-a716-c5249da61270"),

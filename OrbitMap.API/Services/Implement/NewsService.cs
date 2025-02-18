@@ -71,7 +71,7 @@ public class NewsService : BaseService<NewsService>, INewsService
     public async Task<List<NewsWithReactionResponse>> GetNewsAsync(string username)
     {
         if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var newsList = await _unitOfWork.GetRepository<News>().GetListAsync(
             selector: x => new News
             {
@@ -128,19 +128,19 @@ public class NewsService : BaseService<NewsService>, INewsService
     public async Task<NewsReactionResponse> ReactToNewsAsync(string username, Guid newsId, ReactNewsRequest request)
     {
         if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
             predicate: x => x.Username.Equals(username)
         );
         if (member == null)
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var news = await _unitOfWork.GetRepository<News>().SingleOrDefaultAsync(
             predicate: x => x.Id == newsId && x.ExpirationDate >= DateTime.UtcNow
             // include: x => x.Include(x => x.NewsReactions)
             //     .ThenInclude(x => x.Member)
         );
         if (news == null)
-            throw new Exception("News not found");
+            throw new Exception("Không tìm thấy News");
         var newsReaction = await _unitOfWork.GetRepository<NewsReaction>().SingleOrDefaultAsync(
             predicate: x => x.NewsId.Equals(newsId) && x.Username.Equals(username),
             include: x => x.Include(x => x.Member)

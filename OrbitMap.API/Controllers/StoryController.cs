@@ -75,7 +75,7 @@ public class StoryController : BaseController<StoryController>
         return new ApiSuccessResult<List<StoryByMonthResponse>>(result);
     }
 
-    [HttpGet(ApiEndPointConstant.Story.StoryTimeLapse)]
+    [HttpPost(ApiEndPointConstant.Story.StoryTimeLapse)]
     [ProducesResponseType(typeof(ApiSuccessResult<string>), StatusCodes.Status200OK)]
     public async Task<ApiResult<string>> GetStoryTimeLapse([Required] CreateStoryTimeLapseRequest request)
     {
@@ -83,5 +83,16 @@ public class StoryController : BaseController<StoryController>
         var result = await _videoService.CreateVideoTimeLapse(request);
         _logger.Information($"END: {nameof(GetStoryTimeLapse)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<string>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.Story.StoryImage)]
+    [ProducesResponseType(typeof(ApiSuccessResult<List<string>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<List<string>>> GetAllImageUrlStory()
+    {
+        var username = User.GetUsername();
+        _logger.Information($"BEGIN: {nameof(GetAllImageUrlStory)} - {DateTime.UtcNow}");
+        var result = await _storyService.GetAllImageUrlStoryAsync(username);
+        _logger.Information($"END: {nameof(GetAllImageUrlStory)} - {DateTime.UtcNow}");
+        return new ApiSuccessResult<List<string>>(result);
     }
 }

@@ -1,4 +1,5 @@
 using OrbitMap.API.Payload.Request.User;
+using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.User;
 using LoginRequest = OrbitMap.API.Payload.Request.User.LoginRequest;
 
@@ -19,4 +20,6 @@ public interface IUserService
     public Task<MemberDto> ChangePassword(string username, ChangePasswordRequest changePasswordRequest);
 
     public Task<MemberDto> ForgetPassword(ForgetPasswordRequest forgetPasswordRequest);
+
+    public Task<List<LocationDto>> GetLocations(string username);
 }

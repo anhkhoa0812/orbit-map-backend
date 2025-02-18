@@ -21,6 +21,7 @@ public static class ApiEndPointConstant
         public const string Rank = UserEndpoint + "/rank";
         public const string Profile = UserEndpoint + "/profile";
         public const string UpdatePassword = UserEndpoint + "/changepass";
+        public const string Location = UserEndpoint + "/locations";
     }
 
     public static class OneSignal
@@ -51,6 +52,7 @@ public static class ApiEndPointConstant
         public const string ReplyStory = StoryEndpoint + "/reply";
         public const string StoryByMonth = StoryEndpoint + "/month";
         public const string StoryTimeLapse = StoryEndpoint + "/time-lapse";
+        public const string StoryImage = StoryEndpoint + "/image";
     }
 
     public static class Payment

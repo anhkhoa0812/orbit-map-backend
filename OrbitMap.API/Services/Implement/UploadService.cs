@@ -105,23 +105,22 @@ public class UploadService : BaseService<UploadService>, IUploadService
                 .WithEndpoint(_awsSettings.EndPoint)
                 .WithCredentials(_awsSettings.AccessKey, _awsSettings.SecretKey)
                 .Build();
+            var objectName = $"{Guid.NewGuid().ToString()}{extension}";
+            var headers = new Dictionary<string, string>
+            {
+                { "x-amz-acl", "public-read" }
+            };
             var result = await minio.PutObjectAsync(new PutObjectArgs()
                 .WithBucket(_awsSettings.BucketName)
-                .WithObject($"{Guid.NewGuid().ToString()}{extension}")
+                .WithObject(objectName)
                 .WithStreamData(file.OpenReadStream())
                 .WithObjectSize(file.Length)
                 .WithContentType("video/mp4")
+                .WithHeaders(headers)
             );
             if (result == null)
                 throw new MinioException("Failed to upload video");
-            var reqParams = new Dictionary<string, string>(StringComparer.Ordinal)
-                { { "response-content-type", "video/mp4" } };
-            var presignedUrlArgs = new PresignedGetObjectArgs()
-                .WithBucket(_awsSettings.BucketName) // Your bucket name
-                .WithObject(result.ObjectName)
-                .WithExpiry(604800)
-                .WithHeaders(reqParams);
-            var url = await minio.PresignedGetObjectAsync(presignedUrlArgs);
+            var url = $"https://{_awsSettings.EndPoint}/{_awsSettings.BucketName}/{objectName}";
             return url;
         }
         catch (Exception e)
@@ -130,101 +129,6 @@ public class UploadService : BaseService<UploadService>, IUploadService
             throw new Exception("Failed to upload video", e);
         }
     }
-    // public async Task<string> UploadImageAsync(IFormFile file)
-    // {
-    //     if (file == null || file.Length == 0)
-    //     {
-    //         throw new BadHttpRequestException("Không tìm thấy file");
-    //     }
-    //
-    //     var allowedExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
-    //     var extension = Path.GetExtension(file.FileName).ToLower();
-    //
-    //     if (!allowedExtensions.Contains(extension))
-    //         throw new InvalidOperationException(
-    //             "Chỉ các định dạng tệp txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, và .pptx được phép tải lên.");
-    //     var credential = new BasicAWSCredentials(_awsSettings.AccessKey, _awsSettings.SecretKey);
-    //     var config = new AmazonS3Config()
-    //     {
-    //         ServiceURL = "https://s3-hcm5-r1.longvan.net",
-    //         ForcePathStyle = true,
-    //         AuthenticationRegion = "us-east-1"
-    //     };
-    //
-    //     try
-    //     {
-    //         using (var client = new AmazonS3Client(credential, config))
-    //         {
-    //             using (var newMemoryStream = new MemoryStream())
-    //             {
-    //                 await file.CopyToAsync(newMemoryStream);
-    //                 newMemoryStream.Position = 0;
-    //                 TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest();
-    //                 uploadRequest.AutoCloseStream = false;
-    //                 uploadRequest.BucketName = "new-bucket-e12c7fa5";
-    //                 uploadRequest.InputStream = newMemoryStream;
-    //                 uploadRequest.Key = file.FileName;
-    //                 uploadRequest.PartSize = 50 * 1024 * 1024;
-    //                 TransferUtility ut = new TransferUtility(client);
-    //                 await ut.UploadAsync(uploadRequest);
-    //                 // PutObjectRequest putObjectRequest = new PutObjectRequest
-    //                 // {
-    //                 //     BucketName = "new-bucket-e12c7fa5",
-    //                 //     Key = file.FileName,
-    //                 //     InputStream = newMemoryStream,
-    //                 //     CannedACL = S3CannedACL.PublicRead,
-    //                 // };
-    //                 // await client.PutObjectAsync(putObjectRequest);
-    //                 return "kkk";
-    //             }
-    //         }
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         _logger.Error($"Failed to upload image: {e.Message}");
-    //         throw new Exception("Failed to upload image", e);
-    //     }
-    // }
-    // public async Task<string> UploadImageAsync(IFormFile file)
-    // {
-    //     if (file == null || file.Length == 0)
-    //     {
-    //         throw new BadHttpRequestException("Không tìm thấy file");
-    //     }
-    //
-    //     var allowedExtensions = new[] { ".jgeg", ".png", ".jpg", ".gif", ".bmp", ".webp" };
-    //     var extension = Path.GetExtension(file.FileName).ToLower();
-    //
-    //     if (!allowedExtensions.Contains(extension))
-    //         throw new InvalidOperationException(
-    //             "Chỉ các định dạng tệp txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, và .pptx được phép tải lên.");
-    //
-    //     try
-    //     {
-    //         using var fileStream = file.OpenReadStream();
-    //         byte[] fileBytes = new byte[file.Length];
-    //         await fileStream.ReadAsync(fileBytes, 0, (int)file.Length);
-    //         if (!Directory.Exists(_settings.ImagePath))
-    //         {
-    //             Directory.CreateDirectory(_settings.ImagePath);
-    //         }
-    //
-    //         string fileName = $"{Guid.NewGuid()}{extension}";
-    //         string filePath = Path.Combine(_settings.ImagePath, fileName);
-    //
-    //         await using (var outputFileStream = new FileStream(filePath, FileMode.Create))
-    //         {
-    //             await outputFileStream.WriteAsync(fileBytes, 0, fileBytes.Length);
-    //         }
-    //
-    //         return $"{_settings.ImagePathUrl}{fileName}";
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         _logger.Error($"Failed to upload image: {e.Message}");
-    //         throw new Exception("Failed to upload image", e);
-    //     }
-    // }
 
 
     private async Task<TimeSpan> GetVideoDurationAsync(IFormFile file)

@@ -339,7 +339,8 @@ public class StoryService : BaseService<StoryService>, IStoryService
         {
             var storyResponse = _mapper.Map<StoryResponse>(story);
             // Call helper method to get the resized image as a Base64 data URL.
-            storyResponse.MediaUrl = await ImageUtil.ResizeImage(story.MediaUrl);
+            // storyResponse.MediaUrl = await ImageUtil.ResizeImage(story.MediaUrl);
+            storyResponse.MediaUrl = story.MediaUrl;
             storyResponses.Add(storyResponse);
         }
 
@@ -351,6 +352,22 @@ public class StoryService : BaseService<StoryService>, IStoryService
                 Stories = x.ToList()
             }).OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).ToList();
         return result;
+    }
+
+    public async Task<List<string>> GetAllImageUrlStoryAsync(string username)
+    {
+        var stories = await _unitOfWork.GetRepository<Story>().GetListAsync(
+            predicate: x => x.Member.Username == username,
+            include: x => x.Include(x => x.Member)
+        );
+
+        if (stories.Any())
+        {
+            var mediaUrls = stories.Select(x => x.MediaUrl).ToList();
+            return mediaUrls;
+        }
+
+        return new List<string>();
     }
 
     private async Task UpdateLastMessageChat(Message message)

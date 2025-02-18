@@ -9,6 +9,7 @@ public class MemberDto
     public string? AvatarUrl { get; set; }
     public bool isPremium { get; set; }
     public DateTime? ExpiredRankDate { get; set; }
+    public DateOnly? Birthday { get; set; }
 
-    public ICollection<UserDto> Friends { get; set; }
+    public ICollection<MemberDto> Friends { get; set; }
 }

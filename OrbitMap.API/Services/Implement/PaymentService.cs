@@ -29,12 +29,14 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
     public async Task<string> Checkout(string username)
     {
         if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
             predicate: x => x.Username.Equals(username)
         );
         if (member == null)
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
+        if (member.IsPremium)
+            throw new BadHttpRequestException("Bạn đã đăng ký gói");
         var payOs = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
         var orderCode = int.Parse(DateTimeOffset.Now.ToString("ffffff"));
         var itemData = new List<ItemData>
@@ -43,15 +45,17 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
         };
         var paymentData = new PaymentData(
             orderCode,
-            39000,
+            5000,
             "Thanh toán đơn hàng",
             itemData,
-            "https://stemlabs.store/cancel",
-            "https://stemlabs.store/success",
+            "https://orbitmap.vn/cancel",
+            "https://orbitmap.vn/success",
             buyerName: member.DisplayName,
             buyerPhone: member.PhoneNumber,
             expiredAt: ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds()
         );
+        // "https://stemlabs.store/cancel",
+        // "https://stemlabs.store/success",
         try
         {
             var createPayment = await payOs.createPaymentLink(paymentData);
@@ -62,7 +66,7 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
                 {
                     Id = Guid.NewGuid(),
                     OrderCode = createPayment.orderCode,
-                    Amount = 39000,
+                    Amount = 5000,
                     MemberId = member.Id,
                     Status = ETransactionStatus.Pending,
                     Description = "Đăng ký gói hội viên Premium"
@@ -89,13 +93,13 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
     public async Task<string> CheckoutBusiness(string username, EBusinessService businessServiceEnum)
     {
         if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var business = await _unitOfWork.GetRepository<Business>().SingleOrDefaultAsync(
             predicate: x => x.Username.Equals(username)
         );
         if (business == null)
         {
-            throw new BadHttpRequestException("Business not found");
+            throw new BadHttpRequestException("Không tìm thấy doanh nghiệp");
         }
 
         var businessService = await _unitOfWork.GetRepository<Domain.Entities.BusinessService>().SingleOrDefaultAsync(
@@ -103,7 +107,7 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
         );
         if (businessService == null)
         {
-            throw new BadHttpRequestException("Business service not found");
+            throw new BadHttpRequestException("Không tìm thấy dịch vụ của doanh nghiệp");
         }
 
         var payOs = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Net.payOS;
 using OrbitMap.API.Payload.Request.User;
+using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
@@ -170,12 +171,12 @@ public class UserService : BaseService<UserService>, IUserService
     public async Task<MemberDto> GetProfile(string username)
     {
         if (string.IsNullOrEmpty(username))
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
             predicate: x => x.Username.Equals(username)
         );
         if (member == null)
-            throw new AuthenticationException("Authentication failed");
+            throw new AuthenticationException("Xác thực không thành công");
         var friendships = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
             selector: f => new Friendship()
             {
@@ -198,7 +199,7 @@ public class UserService : BaseService<UserService>, IUserService
         );
         var friends =
             friendships.Select(f => f.Requester.Username == username ? f.Addressee : f.Requester);
-        var friendsDto = _mapper.Map<List<UserDto>>(friends);
+        var friendsDto = _mapper.Map<List<MemberDto>>(friends);
         var result = _mapper.Map<MemberDto>(member);
         result.Friends = friendsDto;
         return result;
@@ -240,5 +241,23 @@ public class UserService : BaseService<UserService>, IUserService
         if (!isSuccess)
             throw new Exception("Quên mật khẩu thất bại");
         return _mapper.Map<MemberDto>(member);
+    }
+
+    public async Task<List<LocationDto>> GetLocations(string username)
+    {
+        if (string.IsNullOrEmpty(username))
+            throw new BadHttpRequestException("Không tìm thấy người dùng");
+
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username),
+            include: x => x.Include(x => x.MemberLocations).ThenInclude(x => x.Location)
+        );
+        if (member == null) throw new BadHttpRequestException("Không tìm thấy người dùng");
+
+        var locations = member.MemberLocations?.Select(x => x.Location);
+
+        if (locations == null) return new List<LocationDto>();
+
+        return _mapper.Map<List<LocationDto>>(locations);
     }
 }

@@ -18,4 +18,6 @@ public interface IStoryService
     Task<MessageDto> ReplyStoryAsync(string username, CreateMessageDto createMessageDto);
 
     Task<List<StoryByMonthResponse>> GetStoriesByMonthAsync(string username);
+
+    Task<List<string>> GetAllImageUrlStoryAsync(string username);
 }

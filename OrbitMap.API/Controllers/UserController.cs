@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Helper;
 using OrbitMap.API.Payload.Request.User;
+using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
@@ -55,5 +56,14 @@ public class UserController : BaseController<UserController>
         var result = await _userService.ChangePassword(username, request);
         _logger.Information($"END: {nameof(UpdatePassword)} - {DateTime.UtcNow}");
         return new ApiSuccessResult<MemberDto>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.User.Location)]
+    [ProducesResponseType(typeof(ApiSuccessResult<List<LocationDto>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<List<LocationDto>>> GetLocations()
+    {
+        var username = User.GetUsername();
+        var result = await _userService.GetLocations(username);
+        return new ApiSuccessResult<List<LocationDto>>(result);
     }
 }
