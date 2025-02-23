@@ -61,4 +61,11 @@ public class Business : User
     public BusinessService? BusinessService { get; set; }
 
     public EBusinessType BusinessType { get; set; }
+
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+
+    public string Address { get; set; }
+    public string LocationId { get; set; }
+    [ForeignKey(nameof(LocationId))] public Location? Location { get; set; }
 }

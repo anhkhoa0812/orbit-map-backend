@@ -7,6 +7,8 @@ using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Validators;
+using OrbitMap.Domain.Enums;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -65,5 +67,15 @@ public class UserController : BaseController<UserController>
         var username = User.GetUsername();
         var result = await _userService.GetLocations(username);
         return new ApiSuccessResult<List<LocationDto>>(result);
+    }
+
+    [CustomAuthorize(ERoleEnum.Member)]
+    [HttpDelete(ApiEndPointConstant.User.UserEndpoint)]
+    [ProducesResponseType(typeof(ApiSuccessResult<bool>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<bool>> DeleteUser([FromBody] DeleteUserRequest request)
+    {
+        var username = User.GetUsername();
+        var result = await _userService.DeleteUser(username, request);
+        return new ApiSuccessResult<bool>(result);
     }
 }

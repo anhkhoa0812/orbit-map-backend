@@ -17,13 +17,13 @@ public class BusinessServiceConfiguration : IEntityTypeConfiguration<BusinessSer
             );
         builder.HasData(new BusinessService()
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("bc9862b5-6328-44fe-acf9-d5def2c5ea29"),
             BusinessServiceType = EBusinessService.FIRST_RESANDHOTEL,
             Price = 299000
         });
         builder.HasData(new BusinessService()
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("50cd0e88-e256-424b-b694-bdfe52d40bab"),
             BusinessServiceType = EBusinessService.RESANDHOTEL_1Y,
             Price = 1299000
         });

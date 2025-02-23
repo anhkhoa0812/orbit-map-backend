@@ -23,7 +23,6 @@ public class UserMapper : Profile
         CreateMap<UpdateUserRequest, Member>().IgnoreAllNonExisting();
         CreateMap<Member, MemberDto>();
         CreateMap<CreateBusinessRequest, Business>();
-        CreateMap<Business, BusinessResponse>();
         CreateMap<Member, UserLocationDto>();
         CreateMap<Member, FriendWithUserResponse>();
     }

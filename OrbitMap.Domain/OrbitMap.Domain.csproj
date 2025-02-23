@@ -26,8 +26,6 @@
         <PackageReference Include="Minio" Version="6.0.4"/>
         <PackageReference Include="Npgsql" Version="8.0.6"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8"/>
-        <PackageReference Include="OpenCvSharp4" Version="4.10.0.20241108"/>
-        <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20241108"/>
         <PackageReference Include="payOS" Version="1.0.9"/>
         <PackageReference Include="RestSharp" Version="112.1.0"/>
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>

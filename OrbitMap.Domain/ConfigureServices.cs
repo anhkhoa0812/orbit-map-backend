@@ -33,6 +33,7 @@ public static class ConfigureServices
         services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
         services.Configure<AwsSettings>(configuration.GetSection("Aws"));
+        services.Configure<VietMapSettings>(configuration.GetSection("VietMap"));
         return services;
     }
 

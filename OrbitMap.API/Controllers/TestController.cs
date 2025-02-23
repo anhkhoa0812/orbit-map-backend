@@ -18,19 +18,19 @@ namespace OrbitMap.API.Controllers;
 [Route("/api/v1/passport")]
 public class TestController : BaseController<TestController>
 {
-    private readonly ICraftMyPdfService _craftMyPdfService;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork<OrbitMapContext> _unitOfWork;
-    private readonly IVideoService _videoService;
+    private readonly IOverseaService _overseaService;
+    private readonly IVietMapService _vietMapService;
 
-    public TestController(ILogger logger, ICraftMyPdfService craftMyPdfService, IMapper mapper,
-        IUnitOfWork<OrbitMapContext> unitOfWork, IVideoService videoService) :
+    public TestController(ILogger logger, IMapper mapper,
+        IUnitOfWork<OrbitMapContext> unitOfWork, IOverseaService overseaService, IVietMapService vietMapService) :
         base(logger)
     {
-        _craftMyPdfService = craftMyPdfService;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
-        _videoService = videoService;
+        _overseaService = overseaService;
+        _vietMapService = vietMapService;
     }
 
     // [HttpGet]
@@ -61,11 +61,17 @@ public class TestController : BaseController<TestController>
         return result;
     }
 
-    //
-    // [HttpPost("/video")]
-    // public async Task<IActionResult> CreateVideoTimeLapse([FromBody] string[] images)
-    // {
-    //     var result = await _videoService.CreateVideoTimeLapse(images);
-    //     return Ok(result);
-    // }
+    [HttpGet("/oversea")]
+    public async Task<IActionResult> GetNearestHotelFromOversea([FromQuery] double lat, [FromQuery] double lng)
+    {
+        var result = await _overseaService.GetNearestHotelFromOversea(lat, lng);
+        return Ok(result);
+    }
+
+    [HttpGet("/vietmap")]
+    public async Task<IActionResult> GetAddressByLocation([FromQuery] double lat, [FromQuery] double lng)
+    {
+        var result = await _vietMapService.GetAddressByLocation(lat, lng);
+        return Ok(result);
+    }
 }

@@ -22,4 +22,6 @@ public interface IUserService
     public Task<MemberDto> ForgetPassword(ForgetPasswordRequest forgetPasswordRequest);
 
     public Task<List<LocationDto>> GetLocations(string username);
+
+    public Task<bool> DeleteUser(string username, DeleteUserRequest request);
 }

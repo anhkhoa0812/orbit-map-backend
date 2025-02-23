@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrbitMap.Domain.Entities;
+using OrbitMap.Domain.Enums;
 
 namespace OrbitMap.Domain.Persistent.Configurations;
 
@@ -75,6 +76,41 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
             IsPremium = true,
             AvatarUrl =
                 "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png"
+        });
+    }
+}
+
+public class BusinessConfiguration : IEntityTypeConfiguration<Business>
+{
+    public void Configure(EntityTypeBuilder<Business> builder)
+    {
+        builder.Property(bs => bs.BusinessType)
+            .HasConversion(
+                v => v.ToString(),
+                v => (EBusinessType)Enum.Parse(typeof(EBusinessType), v)
+            );
+        builder
+            .HasOne(b => b.Location)
+            .WithMany(m => m.Businesses)
+            .HasForeignKey(ml => ml.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasData(new Business
+        {
+            Id = Guid.Parse("edda5af1-27b1-466b-9037-ab4a91b269d8"),
+            Username = "pizza4p",
+            PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("pizza4p"))),
+            PhoneNumber = "0435377485",
+            CreatedDate = DateTime.UtcNow,
+            RoleId = Guid.Parse("3fd223f6-3edd-4c87-888a-35defcff39e8"),
+            DisplayName = "PIZZA 4P'S",
+            AvatarUrl =
+                "https://s3-hcm5-r1.longvan.net/19429498-orbitmap/10000010_2.jpg",
+            BusinessType = EBusinessType.Restaurant,
+            BusinessServiceId = Guid.Parse("50cd0e88-e256-424b-b694-bdfe52d40bab"),
+            Latitude = 10.8018374,
+            LocationId = "vnSG",
+            Longitude = 106.745865,
+            Address = "8/15 Lê Thánh Tôn, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
         });
     }
 }

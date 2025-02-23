@@ -260,4 +260,94 @@ public class UserService : BaseService<UserService>, IUserService
 
         return _mapper.Map<List<LocationDto>>(locations);
     }
+
+    public async Task<bool> DeleteUser(string username, DeleteUserRequest request)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            throw new BadHttpRequestException("Không tìm thấy người dùng");
+        }
+
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: x => x.Username.Equals(username)
+        );
+        if (member == null)
+            throw new BadHttpRequestException("Không tìm thấy người dùng");
+
+        if (!PasswordUtil.HashPassword(request.Password).Equals(member.PasswordHash))
+            throw new BadHttpRequestException("Mật khẩu không chính xác");
+
+        var stories = await _unitOfWork.GetRepository<Story>().GetListAsync(
+            predicate: x => x.UserId.Equals(member.Id)
+        );
+        if (stories.Any())
+        {
+            _unitOfWork.GetRepository<Story>().DeleteRangeAsync(stories);
+        }
+
+        var friends = await _unitOfWork.GetRepository<Friendship>().GetListAsync(
+            predicate: x => x.AddresseeId.Equals(member.Id) || x.RequesterId.Equals(member.Id)
+        );
+        if (friends.Any())
+        {
+            _unitOfWork.GetRepository<Friendship>().DeleteRangeAsync(friends);
+        }
+
+        var subscriptionIds = await _unitOfWork.GetRepository<SubscriptionIds>().GetListAsync(
+            predicate: x => x.Username.Equals(member.Username)
+        );
+        if (subscriptionIds.Any())
+        {
+            _unitOfWork.GetRepository<SubscriptionIds>().DeleteRangeAsync(subscriptionIds);
+        }
+
+        var newsReactions = await _unitOfWork.GetRepository<NewsReaction>().GetListAsync(
+            predicate: x => x.Username.Equals(member.Username)
+        );
+        if (newsReactions.Any())
+        {
+            _unitOfWork.GetRepository<NewsReaction>().DeleteRangeAsync(newsReactions);
+        }
+
+        var transactions = await _unitOfWork.GetRepository<Transaction>().GetListAsync(
+            predicate: x => x.MemberId.Equals(member.Id)
+        );
+        if (transactions.Any())
+        {
+            _unitOfWork.GetRepository<Transaction>().DeleteRangeAsync(transactions);
+        }
+
+        var memberLocations = await _unitOfWork.GetRepository<MemberLocation>().GetListAsync(
+            predicate: x => x.MemberId.Equals(member.Id)
+        );
+        if (memberLocations.Any())
+        {
+            _unitOfWork.GetRepository<MemberLocation>().DeleteRangeAsync(memberLocations);
+        }
+
+        var messages = await _unitOfWork.GetRepository<Message>().GetListAsync(
+            predicate: x =>
+                x.MessageDocument.RecipientUsername.Equals(member.Username) ||
+                x.MessageDocument.SenderUsername.Equals(member.Username)
+        );
+        if (messages.Any())
+        {
+            _unitOfWork.GetRepository<Message>().DeleteRangeAsync(messages);
+        }
+
+        var lastMessageChats = await _unitOfWork.GetRepository<LastMessageChat>().GetListAsync(
+            predicate: x => x.LastMessageChatDocument.RecipientUsername.Equals(member.Username) ||
+                            x.LastMessageChatDocument.SenderUsername.Equals(member.Username)
+        );
+        if (lastMessageChats.Any())
+        {
+            _unitOfWork.GetRepository<LastMessageChat>().DeleteRangeAsync(lastMessageChats);
+        }
+
+        _unitOfWork.GetRepository<Member>().DeleteAsync(member);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+            throw new Exception("Xóa người dùng thất bại");
+        return true;
+    }
 }

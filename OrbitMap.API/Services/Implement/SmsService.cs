@@ -4,6 +4,7 @@ using OrbitMap.API.Payload.Request.Sms;
 using OrbitMap.API.Payload.Response.Sms;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
+using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
@@ -14,7 +15,10 @@ public class SmsService : BaseService<SmsService>, ISmsService
 {
     private readonly IConfiguration _configuration;
     private readonly IRedisService _redisService;
-    public SmsService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IRedisService redisService) : base(unitOfWork, logger, mapper, httpContextAccessor)
+
+    public SmsService(IUnitOfWork<OrbitMapContext> unitOfWork, ILogger logger, IMapper mapper,
+        IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IRedisService redisService) : base(
+        unitOfWork, logger, mapper, httpContextAccessor)
     {
         _configuration = configuration;
         _redisService = redisService;
@@ -29,17 +33,33 @@ public class SmsService : BaseService<SmsService>, ISmsService
         if (!string.IsNullOrEmpty(existingOtp))
             throw new BadHttpRequestException("Mã OTP đã được gửi");
 
+        if (request.IsRegister)
+        {
+            if (string.IsNullOrEmpty(request.Username))
+                throw new BadHttpRequestException("Tên đăng nhập không được để trống");
+            var users = await _unitOfWork.GetRepository<Member>().GetListAsync();
+            if (users.Select(x => x.Username).Contains(request.Username))
+            {
+                throw new BadHttpRequestException("Tên đăng nhập đã tồn tại");
+            }
+
+            if (users.Select(x => x.PhoneNumber).Contains(request.PhoneNumber))
+            {
+                throw new BadHttpRequestException("Số điện thoại đã được sử dụng");
+            }
+        }
+
         var phoneNumberArray = new string[] { request.PhoneNumber };
         var otp = SmsUtil.GenerateOtp();
         var content = "Mã OTP của bạn là: " + otp;
         var response = SmsUtil.SendSMS(phoneNumberArray, content, _configuration);
-        
+
         var smsResponse = JsonSerializer.Deserialize<SmsModel.SmsResponse>(response);
         if (smsResponse.status != "success" && smsResponse.code != "00")
         {
             throw new BadHttpRequestException("Lỗi khi gửi mã OTP");
         }
-        
+
         await _redisService.SetStringAsync(key, otp, TimeSpan.FromMinutes(2));
         return request.PhoneNumber;
     }

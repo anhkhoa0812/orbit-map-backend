@@ -1,6 +1,6 @@
-namespace OrbitMap.API.Payload.Response.User;
+namespace OrbitMap.API.Payload.Response.Business;
 
-public class BusinessResponse
+public class CreateBusinessResponse
 {
     public Guid Id { get; set; }
     public string Username { get; set; }

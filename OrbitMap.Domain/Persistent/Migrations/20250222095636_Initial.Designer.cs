@@ -13,8 +13,8 @@ using OrbitMap.Domain.Persistent;
 namespace OrbitMap.Domain.Persistent.Migrations
 {
     [DbContext(typeof(OrbitMapContext))]
-    [Migration("20250217160223_Config_DateOnly_For_Birthday")]
-    partial class Config_DateOnly_For_Birthday
+    [Migration("20250222095636_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,7 +113,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("7dc0741b-b5b4-4b3e-808d-1da4524169ed"),
                             AddresseeId = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(2180),
                             RequesterId = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             Status = "Accepted"
                         });
@@ -266,8 +266,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             BusinessImage = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png",
                             BusinessName = "Báo Thái Bình",
                             Content = "Bảo tàng tại Nam Từ Liêm, Hà Nội, mở cửa 1/11 và miễn phí vé trong tháng đầu. Dự án 2.500 tỷ đồng trải rộng trên 74ha, với điểm nhấn là Tháp Chiến thắng cao 45m - tượng trưng cho năm 1945. Ngoài trưng bày lịch sử chiến tranh, bảo tàng còn mang đến trải nghiệm về cuộc đấu tranh của Quân đội Nhân dân Việt Nam.",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 337, DateTimeKind.Utc).AddTicks(3890),
-                            ExpirationDate = new DateTime(2025, 3, 17, 16, 2, 23, 337, DateTimeKind.Utc).AddTicks(3900),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(7400),
+                            ExpirationDate = new DateTime(2025, 3, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(7400),
                             ImageUrls = new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" },
                             Title = "TỪ 1/11 BẢO TÀNG LỊCH SỬ QUÂN SỰ MIỄN PHÍ VÉ",
                             Type = "HeaderBanner",
@@ -281,8 +281,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             BusinessImage = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783632/2828588e-984c-47fe-acdd-77eca703c9d3.png",
                             BusinessName = "Viettrekking",
                             Content = "Fansipan – ngọn núi cao nhất Việt Nam, không chỉ được mệnh danh là Nóc nhà Đông Dương mà còn là biểu tượng chinh phục của sức trẻ cùng lòng quyết tâm cháy bỏng. Với độ cao 3143m, Fansipan là ngọn núi cao nhất Việt Nam và là mơ ước của những người đam mê chinh phục.",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 337, DateTimeKind.Utc).AddTicks(3910),
-                            ExpirationDate = new DateTime(2025, 3, 17, 16, 2, 23, 337, DateTimeKind.Utc).AddTicks(3910),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(7410),
+                            ExpirationDate = new DateTime(2025, 3, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(7410),
                             ImageUrls = new List<string> { "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png" },
                             Title = "Tour leo núi Fansipan 2N1Đ (Xuất phát từ Sa Pa)",
                             Type = "BannersOnPage",
@@ -519,7 +519,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("bcd34cfc-02e3-430c-93d1-a4943e10293a"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 338, DateTimeKind.Utc).AddTicks(1720),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 788, DateTimeKind.Utc).AddTicks(3240),
                             DisplayName = "admin",
                             PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "8123456789",
@@ -538,9 +538,37 @@ namespace OrbitMap.Domain.Persistent.Migrations
                     b.Property<int>("BusinessType")
                         .HasColumnType("integer");
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("LocationId")
+                        .HasColumnType("text");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
                     b.HasIndex("BusinessServiceId");
 
+                    b.HasIndex("LocationId");
+
                     b.HasDiscriminator().HasValue("Business");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("edda5af1-27b1-466b-9037-ab4a91b269d8"),
+                            AvatarUrl = "https://s3-hcm5-r1.longvan.net/19429498-orbitmap/10000010_2.jpg",
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 785, DateTimeKind.Utc).AddTicks(7380),
+                            DisplayName = "PIZZA 4P'S",
+                            PasswordHash = "8qrwKJFXESb38JnzyNSpTvSX8iAD3ukNxnhROHUHtHw=",
+                            PhoneNumber = "0435377485",
+                            RoleId = new Guid("3fd223f6-3edd-4c87-888a-35defcff39e8"),
+                            Username = "pizza4p",
+                            BusinessServiceId = new Guid("50cd0e88-e256-424b-b694-bdfe52d40bab"),
+                            BusinessType = 1,
+                            Latitude = 10.8018374,
+                            Longitude = 106.74586499999999
+                        });
                 });
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Member", b =>
@@ -566,7 +594,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         {
                             Id = new Guid("b1cc911f-7d57-4043-a716-c5249da61270"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736499707/ad62b614-4cb7-4e59-af56-ebd47319cf6b.jpg",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9830),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4460),
                             DisplayName = "Khoa Gió Tai",
                             PasswordHash = "v6plobem2ptzJLRd532mc835oAiq5JhrqBgHaCbjR+Y=",
                             PhoneNumber = "0123456789",
@@ -574,13 +602,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "khoa",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9560)
+                            LastActive = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4420)
                         },
                         new
                         {
                             Id = new Guid("cacf40b2-772b-4c20-a0c9-cd7359353622"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9960),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4580),
                             DisplayName = "Hoàng Gió Nhải",
                             PasswordHash = "Jwcj5/UKJtSukNoOEwefKT3TfplT9/mAHOfeGaNfxY4=",
                             PhoneNumber = "1234567890",
@@ -588,13 +616,13 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "hoang",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9950)
+                            LastActive = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4570)
                         },
                         new
                         {
                             Id = new Guid("68c029f3-b49f-41da-864c-40299f71a956"),
                             AvatarUrl = "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736250368/fc72a64e-91fd-495b-bf19-b0f9ae97f1cc.png",
-                            CreatedDate = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9990),
+                            CreatedDate = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4590),
                             DisplayName = "quan",
                             PasswordHash = "e24ih8ftxem8WzOQkrSS/q4n7Yv3+eGp9GlZThzEFcs=",
                             PhoneNumber = "0399533724",
@@ -602,7 +630,7 @@ namespace OrbitMap.Domain.Persistent.Migrations
                             Username = "quan",
                             Birthday = new DateOnly(1999, 1, 1),
                             IsPremium = true,
-                            LastActive = new DateTime(2025, 2, 17, 16, 2, 23, 336, DateTimeKind.Utc).AddTicks(9970)
+                            LastActive = new DateTime(2025, 2, 22, 9, 56, 35, 787, DateTimeKind.Utc).AddTicks(4590)
                         });
                 });
 
@@ -726,6 +754,10 @@ namespace OrbitMap.Domain.Persistent.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OrbitMap.Domain.Entities.Location", null)
+                        .WithMany("Businesses")
+                        .HasForeignKey("LocationId");
+
                     b.Navigation("BusinessService");
                 });
 
@@ -741,6 +773,8 @@ namespace OrbitMap.Domain.Persistent.Migrations
 
             modelBuilder.Entity("OrbitMap.Domain.Entities.Location", b =>
                 {
+                    b.Navigation("Businesses");
+
                     b.Navigation("MemberLocations");
                 });
 

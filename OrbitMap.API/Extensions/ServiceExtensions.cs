@@ -26,6 +26,9 @@ public static class ServiceExtensions
         services.AddScoped<INewsService, NewsService>();
         services.AddScoped<IBusinessService, BusinessService>();
         services.AddScoped<IVideoService, VideoService>();
+        services.AddScoped<IFoodyService, FoodyService>();
+        services.AddScoped<IOverseaService, OverseaService>();
+        services.AddScoped<IVietMapService, VietMapService>();
         return services;
     }
 
@@ -66,7 +69,7 @@ public static class ServiceExtensions
     {
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Con mẹ thèn huy hoàng", Version = "v1" });
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "API OrbitMap V1", Version = "v1" });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
