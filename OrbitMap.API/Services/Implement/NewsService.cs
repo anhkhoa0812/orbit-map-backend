@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using OrbitMap.API.Payload.Request.News;
 using OrbitMap.API.Payload.Response.News;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
 
@@ -92,7 +94,7 @@ public class NewsService : BaseService<NewsService>, INewsService
                 NewsReactions = x.NewsReactions
             },
             predicate:
-            x => x.ExpirationDate >= DateTime.UtcNow,
+            x => x.ExpirationDate >= TimeUtil.GetCurrentSEATime(),
             include:
             x => x.Include(x => x.NewsReactions),
             orderBy: x => x.OrderBy(x => x.Type).ThenByDescending(x => x.CreatedDate)
@@ -135,7 +137,7 @@ public class NewsService : BaseService<NewsService>, INewsService
         if (member == null)
             throw new AuthenticationException("Xác thực không thành công");
         var news = await _unitOfWork.GetRepository<News>().SingleOrDefaultAsync(
-            predicate: x => x.Id == newsId && x.ExpirationDate >= DateTime.UtcNow
+            predicate: x => x.Id == newsId && x.ExpirationDate >= TimeUtil.GetCurrentSEATime()
             // include: x => x.Include(x => x.NewsReactions)
             //     .ThenInclude(x => x.Member)
         );

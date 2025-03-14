@@ -2,6 +2,7 @@ using System.Reflection;
 using Contracts.Domains.Interface;
 using Microsoft.EntityFrameworkCore;
 using OrbitMap.Domain.Entities;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.Domain.Persistent;
 
@@ -53,7 +54,7 @@ public class OrbitMapContext : DbContext
                 case EntityState.Added:
                     if (item.Entity is IDateTracking addedEntity)
                     {
-                        addedEntity.CreatedDate = DateTime.UtcNow;
+                        addedEntity.CreatedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Added;
                     }
 
@@ -62,7 +63,7 @@ public class OrbitMapContext : DbContext
                     if (item.Entity is IDateTracking modifiedEntity)
                     {
                         Entry(item.Entity).Property("Id").IsModified = false;
-                        modifiedEntity.LastModifiedDate = DateTime.UtcNow;
+                        modifiedEntity.LastModifiedDate = TimeUtil.GetCurrentSEATime();
                         item.State = EntityState.Modified;
                     }
 

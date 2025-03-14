@@ -6,6 +6,8 @@ using OrbitMap.API.Payload.Response.Hotel;
 using OrbitMap.API.Payload.Response.Restaurant;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Utils;
+using OrbitMap.Domain.Utils;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -25,9 +27,9 @@ public class BusinessController : BaseController<BusinessController>
     [ProducesResponseType(typeof(ApiSuccessResult<CreateBusinessResponse>), StatusCodes.Status200OK)]
     public async Task<ApiResult<CreateBusinessResponse>> CreateBusinessAsync(CreateBusinessRequest request)
     {
-        _logger.Information($"BEGIN: {nameof(CreateBusinessAsync)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(CreateBusinessAsync)} - {TimeUtil.GetCurrentSEATime()}");
         var result = await _businessService.CreateBusinessAsync(request);
-        _logger.Information($"END: {nameof(CreateBusinessAsync)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(CreateBusinessAsync)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<CreateBusinessResponse>(result);
     }
 
@@ -37,9 +39,9 @@ public class BusinessController : BaseController<BusinessController>
         [FromQuery] double longitude,
         [FromQuery] string location)
     {
-        _logger.Information($"BEGIN: {nameof(GetNearestRestaurant)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetNearestRestaurant)} - {TimeUtil.GetCurrentSEATime()}");
         var result = await _businessService.GetNearestRestaurant(latitude, longitude, location);
-        _logger.Information($"END: {nameof(GetNearestRestaurant)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(GetNearestRestaurant)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<List<RestaurantItemDto>>(result);
     }
 
@@ -48,9 +50,9 @@ public class BusinessController : BaseController<BusinessController>
     public async Task<ApiResult<List<HotelResponse>>> GetNearestHotel([FromQuery] double latitude,
         [FromQuery] double longitude, [FromQuery] string location)
     {
-        _logger.Information($"BEGIN: {nameof(GetNearestHotel)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetNearestHotel)} - {TimeUtil.GetCurrentSEATime()}");
         var result = await _businessService.GetNearestHotel(latitude, longitude, location);
-        _logger.Information($"END: {nameof(GetNearestHotel)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(GetNearestHotel)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<List<HotelResponse>>(result);
     }
 
@@ -58,9 +60,9 @@ public class BusinessController : BaseController<BusinessController>
     [ProducesResponseType(typeof(ApiSuccessResult<List<BusinessResponse>>), StatusCodes.Status200OK)]
     public async Task<ApiResult<List<BusinessResponse>>> GetBusinesses()
     {
-        _logger.Information($"BEGIN: {nameof(GetBusinesses)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(GetBusinesses)} - {TimeUtil.GetCurrentSEATime()}");
         var result = await _businessService.GetBusinessesAsync();
-        _logger.Information($"END: {nameof(GetBusinesses)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(GetBusinesses)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<List<BusinessResponse>>(result);
     }
 }

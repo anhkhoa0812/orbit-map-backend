@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.API.Utils;
 
@@ -27,9 +28,10 @@ public class JwtUtil
         };
         if (guidClaim != null) claims.Add(new Claim(guidClaim.Item1, guidClaim.Item2.ToString()));
         var expires = user.Role.Name.Equals(ERoleEnum.Admin.GetDescriptionFromEnum())
-            ? DateTime.UtcNow.AddDays(15)
-            : DateTime.UtcNow.AddDays(30);
-        var token = new JwtSecurityToken("OrbitMap", null, claims, notBefore: DateTime.UtcNow, expires, credentials);
+            ? TimeUtil.GetCurrentSEATime().AddDays(15)
+            : TimeUtil.GetCurrentSEATime().AddDays(30);
+        var token = new JwtSecurityToken("OrbitMap", null, claims, notBefore: TimeUtil.GetCurrentSEATime(), expires,
+            credentials);
         return jwtHandler.WriteToken(token);
     }
 }

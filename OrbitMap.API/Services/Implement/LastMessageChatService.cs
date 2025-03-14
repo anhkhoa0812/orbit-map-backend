@@ -22,7 +22,8 @@ public class LastMessageChatService : BaseService<LastMessageChatService>, ILast
         var lastMassageChatPaging = await _unitOfWork.GetRepository<LastMessageChat>().GetPagingListAsync(
             predicate: x => x.LastMessageChatDocument.GroupName.Contains(currentUsername),
             page: page,
-            size: size
+            size: size,
+            orderBy: x => x.OrderByDescending(x => x.LastMessageChatDocument.MessageLastDate)
         );
         var result = _mapper.Map<IPaginate<LastMessageChatResponse>>(lastMassageChatPaging);
         return result;

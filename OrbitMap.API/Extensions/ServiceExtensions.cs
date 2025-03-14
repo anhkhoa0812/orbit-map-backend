@@ -29,6 +29,7 @@ public static class ServiceExtensions
         services.AddScoped<IFoodyService, FoodyService>();
         services.AddScoped<IOverseaService, OverseaService>();
         services.AddScoped<IVietMapService, VietMapService>();
+        services.AddScoped<ITravelPlanService, TravelPlanService>();
         return services;
     }
 

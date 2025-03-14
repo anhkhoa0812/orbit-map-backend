@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.Domain.Persistent.Configurations;
 
@@ -24,7 +25,7 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
                     Title = "TỪ 1/11 BẢO TÀNG LỊCH SỬ QUÂN SỰ MIỄN PHÍ VÉ",
                     Content =
                         "Bảo tàng tại Nam Từ Liêm, Hà Nội, mở cửa 1/11 và miễn phí vé trong tháng đầu. Dự án 2.500 tỷ đồng trải rộng trên 74ha, với điểm nhấn là Tháp Chiến thắng cao 45m - tượng trưng cho năm 1945. Ngoài trưng bày lịch sử chiến tranh, bảo tàng còn mang đến trải nghiệm về cuộc đấu tranh của Quân đội Nhân dân Việt Nam.",
-                    CreatedDate = DateTime.UtcNow,
+                    CreatedDate = TimeUtil.GetCurrentSEATime(),
                     Type = ENewsType.HeaderBanner,
                     BannerImage =
                         "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783633/3b07c90d-3c5c-4600-a569-274d93804790.png",
@@ -38,7 +39,7 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
                     {
                         "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png"
                     },
-                    ExpirationDate = DateTime.UtcNow.AddMonths(1)
+                    ExpirationDate = TimeUtil.GetCurrentSEATime().AddMonths(1)
                 },
                 new News()
                 {
@@ -46,7 +47,7 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
                     Title = "Tour leo núi Fansipan 2N1Đ (Xuất phát từ Sa Pa)",
                     Content =
                         "Fansipan – ngọn núi cao nhất Việt Nam, không chỉ được mệnh danh là Nóc nhà Đông Dương mà còn là biểu tượng chinh phục của sức trẻ cùng lòng quyết tâm cháy bỏng. Với độ cao 3143m, Fansipan là ngọn núi cao nhất Việt Nam và là mơ ước của những người đam mê chinh phục.",
-                    CreatedDate = DateTime.UtcNow,
+                    CreatedDate = TimeUtil.GetCurrentSEATime(),
                     Type = ENewsType.BannersOnPage,
                     UselessReactionCount = 0,
                     UsefulReactionCount = 0,
@@ -58,7 +59,7 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
                     {
                         "https://res.cloudinary.com/dl1sfqrek/image/upload/v1736783634/4fa1560a-245a-414c-a2ba-ed6ab02368a2.png"
                     },
-                    ExpirationDate = DateTime.UtcNow.AddMonths(1)
+                    ExpirationDate = TimeUtil.GetCurrentSEATime().AddMonths(1)
                 },
             }
         ));

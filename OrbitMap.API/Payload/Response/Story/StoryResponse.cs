@@ -1,6 +1,8 @@
 using System.Globalization;
 using Humanizer;
 using Humanizer.Localisation;
+using OrbitMap.API.Utils;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.API.Payload.Response.Story;
 
@@ -11,7 +13,10 @@ public class StoryResponse
     public string? Location { get; set; }
     public string? Content { get; set; }
     public string MediaUrl { get; set; }
+
     public string? Weather { get; set; }
+
+    public string? Time { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? LastModifiedDate { get; set; }
     public DateTime ExpirationDate { get; set; }
@@ -24,7 +29,7 @@ public class StoryResponse
     {
         get
         {
-            string humanized = (DateTime.UtcNow - CreatedDate)
+            string humanized = (TimeUtil.GetCurrentSEATime() - CreatedDate)
                 .Humanize(culture: CultureInfo.ReadOnly(CultureInfo.GetCultureInfo("vi-VN")))
                 .Transform(To.SentenceCase);
 

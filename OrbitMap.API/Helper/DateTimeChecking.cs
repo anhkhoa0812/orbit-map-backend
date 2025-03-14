@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using OrbitMap.API.Utils;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.API.Helper;
 
@@ -8,7 +10,7 @@ public class DateTimeChecking : ValidationAttribute
     {
         if (value is DateTime dateTime)
         {
-            if (dateTime > DateTime.UtcNow)
+            if (dateTime > TimeUtil.GetCurrentSEATime())
             {
                 return ValidationResult.Success!;
             }

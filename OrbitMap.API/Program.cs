@@ -1,6 +1,6 @@
-using System.Globalization;
 using System.Text.Json.Serialization;
 using Hangfire;
+using Helmet;
 using Microsoft.AspNetCore.SignalR;
 using OrbitMap.API.Constants;
 using OrbitMap.API.Extensions;
@@ -22,8 +22,8 @@ try
         options.AddPolicy(name: CorsConstant.PolicyName,
             policy =>
             {
-                policy.WithOrigins("http://localhost:3000")
-                    .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                policy.WithOrigins("*")
+                    .AllowAnyHeader().AllowAnyMethod();
             });
     });
     builder.Services.AddControllers().AddJsonOptions(x =>
@@ -61,6 +61,8 @@ try
         });
     }
 
+    app.UseHelmet(
+        options => { options.UseXPoweredBy = false; });
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseCors(CorsConstant.PolicyName);
     app.UseHttpsRedirection();

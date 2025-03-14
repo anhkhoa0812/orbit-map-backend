@@ -16,5 +16,7 @@ public class MessageDocument
     public DateTime? DateRead { get; set; }
     public Guid? StoryId { get; set; }
     public DateTime CreatedDate { get; set; }
+
     public DateTime? LastModifiedDate { get; set; }
+    public bool IsSticker { get; set; }
 }

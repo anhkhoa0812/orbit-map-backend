@@ -16,6 +16,8 @@ public class Story : EntityAuditBase<Guid>
 
     [Column(TypeName = "varchar(50)")] public string? Weather { get; set; }
 
+    [Column(TypeName = "varchar(50)")] public string? Time { get; set; }
+
     [Required] public DateTime ExpirationDate { get; set; }
 
     [Required] public bool IsDisabled { get; set; }

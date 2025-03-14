@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Contracts.Domains;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.Domain.Entities;
 
@@ -37,7 +38,7 @@ public class Member : User
     public bool IsPremium { get; set; }
 
     public DateTime? ExpiredRankDate { get; set; }
-    public DateTime LastActive { get; set; } = DateTime.UtcNow;
+    public DateTime LastActive { get; set; } = TimeUtil.GetCurrentSEATime();
 
     public ICollection<Story>? Stories { get; set; }
 

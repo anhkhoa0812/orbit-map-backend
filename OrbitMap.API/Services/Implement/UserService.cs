@@ -13,6 +13,7 @@ using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
 using LoginRequest = OrbitMap.API.Payload.Request.User.LoginRequest;
@@ -73,13 +74,13 @@ public class UserService : BaseService<UserService>, IUserService
 
         var user = _mapper.Map<Member>(registerRequest);
 
-        var key = registerRequest.PhoneNumber;
-        var existingOtp = await _redisService.GetStringAsync(key);
+        // var key = registerRequest.PhoneNumber;
+        // var existingOtp = await _redisService.GetStringAsync(key);
 
-        if (string.IsNullOrEmpty(existingOtp))
-            throw new BadHttpRequestException("Can not find OTP code");
-        if (!existingOtp.Equals(registerRequest.Otp))
-            throw new BadHttpRequestException("Invalid OTP code");
+        // if (string.IsNullOrEmpty(existingOtp))
+        //     throw new BadHttpRequestException("Can not find OTP code");
+        // if (!existingOtp.Equals(registerRequest.Otp))
+        //     throw new BadHttpRequestException("Invalid OTP code");
         user.PasswordHash = PasswordUtil.HashPassword(registerRequest.Password);
         var role = await _unitOfWork.GetRepository<Role>().SingleOrDefaultAsync(
             predicate: x => x.Name.Equals(ERoleEnum.Member.ToString())
@@ -147,7 +148,7 @@ public class UserService : BaseService<UserService>, IUserService
         {
             case EPayOsStatus.PAID:
                 member.IsPremium = true;
-                member.ExpiredRankDate = DateTime.UtcNow.AddMonths(1);
+                member.ExpiredRankDate = TimeUtil.GetCurrentSEATime().AddMonths(1);
                 transaction.Status = ETransactionStatus.Success;
                 _unitOfWork.GetRepository<Member>().UpdateAsync(member);
                 _unitOfWork.GetRepository<Transaction>().UpdateAsync(transaction);

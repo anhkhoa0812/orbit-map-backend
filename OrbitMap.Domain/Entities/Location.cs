@@ -11,4 +11,5 @@ public class Location : EntityBase<string>
     public virtual ICollection<MemberLocation>? MemberLocations { get; set; }
 
     public virtual ICollection<Business>? Businesses { get; set; }
+    public virtual ICollection<TravelPlan>? TravelPlans { get; set; }
 }

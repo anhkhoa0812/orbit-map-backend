@@ -6,9 +6,11 @@ using OrbitMap.API.Helper;
 using OrbitMap.API.Payload.Request.Location;
 using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.User;
+using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
 
@@ -67,19 +69,17 @@ public class LocationHub : Hub
 
             var friends = await GetFriends(username);
             var friendUsernames = friends.Select(f => f.Username).ToList();
-            if (!friendUsernames.Any())
-            {
-                _logger.Information("User {Username} has no friends to send location.", username);
-                return;
-            }
-
             var userLocation = _mapper.Map<UserLocationDto>(userEntity);
             userLocation.Latitude = request.Latitude;
             userLocation.Longitude = request.Longitude;
-            userLocation.Timestamp = DateTime.UtcNow;
-            await Clients.Users(friendUsernames).SendAsync("ReceiveUserLocation", userLocation);
-            _logger.Information("Location update sent from {Username} to {FriendCount} friends.",
-                username, friendUsernames.Count);
+            userLocation.Timestamp = TimeUtil.GetCurrentSEATime();
+            if (friendUsernames.Any())
+            {
+                await Clients.Users(friendUsernames).SendAsync("ReceiveUserLocation", userLocation);
+                _logger.Information("Location update sent from {Username} to {FriendCount} friends.",
+                    username, friendUsernames.Count);
+            }
+
             await _tracker.UpdateUserLocation(username, userLocation);
         }
         catch (Exception e)

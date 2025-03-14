@@ -12,6 +12,7 @@ using OrbitMap.API.Services.Implement;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using Group = OrbitMap.Domain.Entities.Group;
 using ILogger = Serilog.ILogger;
@@ -91,8 +92,9 @@ public class MessageHub : Hub
                 SenderUsername = sender.Username,
                 RecipientUsername = recipient.Username,
                 StoryId = story?.Id,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = TimeUtil.GetCurrentSEATime(),
                 Content = createMessageDto.Content,
+                IsSticker = createMessageDto.IsSticker
             }
         };
         var groupName = GetGroupName(sender.Username, recipient.Username);
@@ -101,7 +103,7 @@ public class MessageHub : Hub
             include: x => x.Include(g => g.Connections)
         );
         if (group.Connections.Any(x => x.UserName == recipient.Username))
-            message.MessageDocument.DateRead = DateTime.UtcNow;
+            message.MessageDocument.DateRead = TimeUtil.GetCurrentSEATime();
 
         await _unitOfWork.GetRepository<Message>().InsertAsync(message);
         await UpdateLastMessageChat(message, sender, recipient);
@@ -116,6 +118,7 @@ public class MessageHub : Hub
                 MessageSent = message.MessageDocument.CreatedDate,
                 DateRead = message.MessageDocument.DateRead,
                 StoryId = message.MessageDocument.StoryId ?? Guid.Empty,
+                IsSticker = message.MessageDocument.IsSticker
             };
             if (story != null)
             {
@@ -230,7 +233,8 @@ public class MessageHub : Hub
                 Content = x.MessageDocument.Content,
                 MessageSent = x.MessageDocument.CreatedDate,
                 DateRead = x.MessageDocument.DateRead,
-                StoryId = x.MessageDocument.StoryId ?? Guid.Empty
+                StoryId = x.MessageDocument.StoryId ?? Guid.Empty,
+                IsSticker = x.MessageDocument.IsSticker
             },
             predicate: x =>
                 (x.MessageDocument.RecipientUsername == currentUsername &&
@@ -243,7 +247,7 @@ public class MessageHub : Hub
         var unreadMessages = messages.Where(m => m.DateRead == null && m.RecipientUsername == currentUsername).ToList();
         if (unreadMessages.Any())
             foreach (var mess in unreadMessages)
-                mess.DateRead = DateTime.UtcNow;
+                mess.DateRead = TimeUtil.GetCurrentSEATime();
         foreach (var message in messages)
         {
             if (message.StoryId != Guid.Empty)

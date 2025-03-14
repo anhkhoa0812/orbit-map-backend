@@ -25,15 +25,15 @@ public class LocationTracker
         await _redisService.SetStringAsync($"{LocationPrefixKey}{username}", json);
     }
 
-    private async Task<UserLocationDto> GetUserLocation(string username)
+    private async Task<UserLocationDto?> GetUserLocation(string username)
     {
         // UserLocations.TryGetValue(username, out var location);
         // return location;
         var json = await _redisService.GetStringAsync($"{LocationPrefixKey}{username}");
-        return JsonSerializer.Deserialize<UserLocationDto>(json)!;
+        return json != null ? JsonSerializer.Deserialize<UserLocationDto>(json) : null;
     }
 
-    public Task<List<UserLocationDto>> GetLocationsForUsers(List<string> usernames)
+    public Task<List<UserLocationDto?>> GetLocationsForUsers(List<string> usernames)
     {
         // return usernames.Select(u => GetUserLocation(u)).Where(l => l != null).ToList();
         // var keys = usernames.Select(u => (RedisKey)$"{LocationPrefixKey}{u}").ToArray();

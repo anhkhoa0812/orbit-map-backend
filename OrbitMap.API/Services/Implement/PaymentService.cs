@@ -4,10 +4,12 @@ using Microsoft.Extensions.Options;
 using Net.payOS;
 using Net.payOS.Types;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Utils;
 using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
 using Transaction = OrbitMap.Domain.Entities.Transaction;
@@ -45,14 +47,14 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
         };
         var paymentData = new PaymentData(
             orderCode,
-            5000,
+            10000,
             "Thanh toán đơn hàng",
             itemData,
             "https://orbitmap.vn/cancel",
             "https://orbitmap.vn/success",
             buyerName: member.DisplayName,
             buyerPhone: member.PhoneNumber,
-            expiredAt: ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds()
+            expiredAt: ((DateTimeOffset)TimeUtil.GetCurrentSEATime().AddMinutes(10)).ToUnixTimeSeconds()
         );
         // "https://stemlabs.store/cancel",
         // "https://stemlabs.store/success",
@@ -66,10 +68,10 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
                 {
                     Id = Guid.NewGuid(),
                     OrderCode = createPayment.orderCode,
-                    Amount = 5000,
+                    Amount = 10000,
                     MemberId = member.Id,
                     Status = ETransactionStatus.Pending,
-                    Description = "Đăng ký gói hội viên Premium"
+                    Description = "Đăng ký gói hội viên Gold"
                 };
                 await _unitOfWork.GetRepository<Transaction>().InsertAsync(transaction);
                 var isSuccess = await _unitOfWork.CommitAsync() > 0;
@@ -125,7 +127,7 @@ public class PaymentService : BaseService<PaymentService>, IPaymentService
             "https://stemlabs.store/success",
             buyerName: business.DisplayName,
             buyerPhone: business.PhoneNumber,
-            expiredAt: ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds()
+            expiredAt: ((DateTimeOffset)TimeUtil.GetCurrentSEATime().AddMinutes(10)).ToUnixTimeSeconds()
         );
         try
         {

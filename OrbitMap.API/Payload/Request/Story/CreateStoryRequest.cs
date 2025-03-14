@@ -9,5 +9,7 @@ public class CreateStoryRequest
     [Required] public IFormFile ImageFile { get; set; }
     public string? Weather { get; set; }
 
+    public string? Time { get; set; }
+
     [Required] public string CityLocation { get; set; }
 }

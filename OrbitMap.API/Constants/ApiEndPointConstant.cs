@@ -73,4 +73,9 @@ public static class ApiEndPointConstant
         public const string Restaurant = BusinessEndpoint + "/restaurant";
         public const string Hotel = BusinessEndpoint + "/hotel";
     }
+
+    public static class TravelPlan
+    {
+        public const string TravelPlanEndpoint = ApiEndpoint + "/travel-plans";
+    }
 }

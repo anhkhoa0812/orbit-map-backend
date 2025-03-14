@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Utils;
 
 namespace OrbitMap.Domain.Persistent.Configurations;
 
@@ -20,7 +21,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             Username = "admin",
             PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("admin"))),
             PhoneNumber = "8123456789",
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = TimeUtil.GetCurrentSEATime(),
             RoleId = Guid.Parse("3516c2f0-7f9f-4a5d-9ec0-ee5696c95bb1"),
             DisplayName = "admin",
             AvatarUrl =
@@ -41,7 +42,7 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
             Username = "khoa",
             PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("khoa"))),
             PhoneNumber = "0123456789",
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = TimeUtil.GetCurrentSEATime(),
             RoleId = Guid.Parse("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
             DisplayName = "Khoa Gió Tai",
             Birthday = DateOnly.Parse("1999-01-01"),
@@ -55,7 +56,7 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
             Username = "hoang",
             PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("hoang"))),
             PhoneNumber = "1234567890",
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = TimeUtil.GetCurrentSEATime(),
             RoleId = Guid.Parse("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
             DisplayName = "Hoàng Gió Nhải",
             Birthday = DateOnly.Parse("1999-01-01"),
@@ -69,7 +70,7 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
             Username = "quan",
             PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("quan"))),
             PhoneNumber = "0399533724",
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = TimeUtil.GetCurrentSEATime(),
             RoleId = Guid.Parse("d1cd3eef-3318-48e3-99f7-31a938fbd021"),
             DisplayName = "quan",
             Birthday = DateOnly.Parse("1999-01-01"),
@@ -100,7 +101,7 @@ public class BusinessConfiguration : IEntityTypeConfiguration<Business>
             Username = "pizza4p",
             PasswordHash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("pizza4p"))),
             PhoneNumber = "0435377485",
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = TimeUtil.GetCurrentSEATime(),
             RoleId = Guid.Parse("3fd223f6-3edd-4c87-888a-35defcff39e8"),
             DisplayName = "PIZZA 4P'S",
             AvatarUrl =

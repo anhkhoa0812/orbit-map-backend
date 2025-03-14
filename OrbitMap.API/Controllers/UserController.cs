@@ -7,8 +7,10 @@ using OrbitMap.API.Payload.Response.Location;
 using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Payload.Response.User;
 using OrbitMap.API.Services.Interface;
+using OrbitMap.API.Utils;
 using OrbitMap.API.Validators;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Utils;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -54,9 +56,9 @@ public class UserController : BaseController<UserController>
     public async Task<ApiResult<MemberDto>> UpdatePassword([Required] [FromBody] ChangePasswordRequest request)
     {
         var username = User.GetUsername();
-        _logger.Information($"BEGIN: {nameof(UpdatePassword)} - {DateTime.UtcNow}");
+        _logger.Information($"BEGIN: {nameof(UpdatePassword)} - {TimeUtil.GetCurrentSEATime()}");
         var result = await _userService.ChangePassword(username, request);
-        _logger.Information($"END: {nameof(UpdatePassword)} - {DateTime.UtcNow}");
+        _logger.Information($"END: {nameof(UpdatePassword)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<MemberDto>(result);
     }
 

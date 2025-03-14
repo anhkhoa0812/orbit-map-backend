@@ -7,7 +7,10 @@ public class MessageDto
     public Guid Id { get; set; }
     public string SenderUsername { get; set; }
     public string RecipientUsername { get; set; }
+
     public string Content { get; set; }
+
+    public bool IsSticker { get; set; }
     public Guid StoryId { get; set; }
     public StoryResponse Story { get; set; }
     public DateTime? DateRead { get; set; }

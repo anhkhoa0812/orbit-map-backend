@@ -13,6 +13,7 @@ using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Persistent;
+using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
 
@@ -112,6 +113,28 @@ public class StoryService : BaseService<StoryService>, IStoryService
         );
         if (user == null)
             throw new AuthenticationException("Unauthorized");
+        int nonEmptyFields = 0;
+        if (!string.IsNullOrWhiteSpace(createStoryRequest.Location))
+            nonEmptyFields++;
+        if (!string.IsNullOrWhiteSpace(createStoryRequest.Content))
+            nonEmptyFields++;
+        if (!string.IsNullOrWhiteSpace(createStoryRequest.Weather))
+            nonEmptyFields++;
+        // if (!string.IsNullOrWhiteSpace(createStoryRequest.Time))
+        //     nonEmptyFields++;
+        if (nonEmptyFields != 1 && nonEmptyFields != 0)
+        {
+            throw new BadHttpRequestException("Chỉ một trong bốn mục Location, Content, Weather hoặc Time có giá trị.");
+        }
+        // var fields = new[]
+        // {
+        //     createStoryRequest.Location, createStoryRequest.Content, createStoryRequest.Weather, createStoryRequest.Time
+        // };
+        // if (fields.Count(string.IsNullOrWhiteSpace) != 1 && fields.Count(string.IsNullOrWhiteSpace) != 0)
+        // {
+        //     throw new BadHttpRequestException("Chỉ một trong ba mục Location, Content, Weather có giá trị.");
+        // }
+
         var location = await _unitOfWork.GetRepository<Location>().SingleOrDefaultAsync(
             predicate: x => x.Name.Trim().ToLower().Equals(createStoryRequest.CityLocation.Trim().ToLower())
         );
@@ -149,7 +172,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
             story.MediaUrl = await mediaUploadTask;
         }
 
-        story.ExpirationDate = DateTime.UtcNow.AddHours(24);
+        story.ExpirationDate = TimeUtil.GetCurrentSEATime().AddHours(24);
         story.UserId = user.Id;
         await _unitOfWork.GetRepository<Story>().InsertAsync(story);
 
@@ -211,7 +234,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
             predicate: x => x.Username.Equals(username),
             include: x => x.Include(x => x.FriendshipAddressees)
                 .Include(x => x.FriendshipRequests)
-                .Include(x => x.Stories.Where(x => x.ExpirationDate > DateTime.UtcNow))
+                .Include(x => x.Stories.Where(x => x.ExpirationDate > TimeUtil.GetCurrentSEATime()))
         );
         if (user == null)
             throw new AuthenticationException("Unauthorized");
@@ -230,7 +253,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
                 .Distinct()
                 .ToList();
             var friendStories = await _unitOfWork.GetRepository<Story>().GetListAsync(
-                predicate: s => friendIds.Contains(s.UserId) && s.ExpirationDate > DateTime.UtcNow,
+                predicate: s => friendIds.Contains(s.UserId) && s.ExpirationDate > TimeUtil.GetCurrentSEATime(),
                 include: s => s.Include(s => s.Member)
             );
             stories.AddRange(friendStories);
@@ -239,7 +262,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
         {
             var searchUser = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                 predicate: u => u.Username.Equals(searchTerm),
-                include: x => x.Include(x => x.Stories.Where(x => x.ExpirationDate > DateTime.UtcNow))
+                include: x => x.Include(x => x.Stories.Where(x => x.ExpirationDate > TimeUtil.GetCurrentSEATime()))
             );
             if (searchUser != null) stories.AddRange(searchUser.Stories);
         }
@@ -286,8 +309,9 @@ public class StoryService : BaseService<StoryService>, IStoryService
                 SenderUsername = sender!.Username,
                 RecipientUsername = recipient.Username,
                 StoryId = story.Id,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = TimeUtil.GetCurrentSEATime(),
                 Content = createMessageDto.Content,
+                IsSticker = false
             }
         };
         var groupName = GetGroupName(sender.Username, recipient.Username);
@@ -296,7 +320,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
             include: x => x.Include(g => g.Connections)
         );
         if (group.Connections.Any(x => x.UserName == recipient.Username))
-            message.MessageDocument.DateRead = DateTime.UtcNow;
+            message.MessageDocument.DateRead = TimeUtil.GetCurrentSEATime();
 
         await _unitOfWork.GetRepository<Message>().InsertAsync(message);
         await UpdateLastMessageChat(message);
@@ -311,6 +335,7 @@ public class StoryService : BaseService<StoryService>, IStoryService
                 MessageSent = message.MessageDocument.CreatedDate,
                 DateRead = message.MessageDocument.DateRead,
                 StoryId = message.MessageDocument.StoryId ?? Guid.Empty,
+                IsSticker = message.MessageDocument.IsSticker,
                 Story = _mapper.Map<StoryResponse>(story)
             };
             messageDto.Story.Username = message.MessageDocument.RecipientUsername;
