@@ -8,6 +8,8 @@ using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
@@ -36,7 +38,7 @@ public class NewsService : BaseService<NewsService>, INewsService
         news.BusinessImage = uploadBusinessImageResult;
         if (request.Type.Equals(ENewsType.HeaderBanner))
         {
-            if (request.BannerImageFile != null)
+            if (request.BannerImageFile == null)
             {
                 _logger.Error("Banner image is empty");
                 throw new BadHttpRequestException("Banner image is required");
@@ -49,12 +51,12 @@ public class NewsService : BaseService<NewsService>, INewsService
         if (request.NewsImageFiles != null && request.NewsImageFiles.Any())
         {
             var imageUrls = new List<string>();
-            foreach (var newsImage in request.NewsImageFiles)
+            var imageUploadTasks = request.NewsImageFiles.Select(async imageFile =>
             {
-                var uploadImageResult = await _uploadService.UploadImageAsync(newsImage);
-                imageUrls.Add(uploadImageResult);
-            }
-
+                var uploadResult = await _uploadService.UploadImageAsync(imageFile);
+                imageUrls.Add(uploadResult);
+            });
+            await Task.WhenAll(imageUploadTasks);
             news.ImageUrls = imageUrls;
         }
 
@@ -218,5 +220,55 @@ public class NewsService : BaseService<NewsService>, INewsService
                 throw new Exception("Failed to react to news");
             return _mapper.Map<NewsReactionResponse>(newNewsReaction);
         }
+    }
+
+    public async Task<IPaginate<NewsResponse>> GetAllNewsPaging(int page, int size, NewsFilter? filter, string? sortBy,
+        bool isAsc)
+    {
+        var news = await _unitOfWork.GetRepository<News>().GetPagingListAsync(
+            selector: x => new NewsResponse()
+            {
+                Id = x.Id,
+                Title = x.Title,
+                Content = x.Content,
+                ImageUrls = x.ImageUrls,
+                BusinessName = x.BusinessName,
+                BusinessAddress = x.BusinessAddress,
+                BusinessImage = x.BusinessImage,
+                UsefulReactionCount = x.UsefulReactionCount,
+                UselessReactionCount = x.UselessReactionCount,
+                Type = x.Type,
+                CreatedDate = x.CreatedDate,
+                LastModifiedDate = x.LastModifiedDate,
+                ExpirationDate = x.ExpirationDate,
+                BannerImage = x.BannerImage
+            },
+            page: page,
+            size: size,
+            filter: filter,
+            sortBy: sortBy,
+            isAsc: isAsc
+        );
+        return news;
+    }
+
+    public async Task<NewsResponse> DeleteNewsAsync(Guid newsId, DeleteImageNewsRequest request)
+    {
+        var news = await _unitOfWork.GetRepository<News>().SingleOrDefaultAsync(
+            predicate: x => x.Id == newsId
+        );
+        if (news == null)
+            throw new Exception("Không tìm thấy News");
+        if (!news.ImageUrls!.Contains(request.ImageUrl))
+        {
+            throw new BadHttpRequestException("Hình ảnh này không được tìm thấy trong News");
+        }
+
+        news.ImageUrls.Remove(request.ImageUrl);
+        _unitOfWork.GetRepository<News>().UpdateAsync(news);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+            throw new Exception("Failed to delete image");
+        return _mapper.Map<NewsResponse>(news);
     }
 }

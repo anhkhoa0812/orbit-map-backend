@@ -8,6 +8,9 @@ using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Validators;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate;
+using OrbitMap.Domain.Paginate.Interfaces;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -49,5 +52,25 @@ public class NewsController : BaseController<NewsController>
         var username = User.GetUsername();
         var result = await _newsService.ReactToNewsAsync(username, id, request);
         return new ApiSuccessResult<NewsReactionResponse>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.News.NewsPagination)]
+    [ProducesResponseType(typeof(ApiSuccessResult<IPaginate<NewsResponse>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<IPaginate<NewsResponse>>> GetNewsPaginationAsync([FromQuery] int page = 1,
+        [FromQuery] int size = 30, [FromQuery] NewsFilter? filter = null, string? sortBy = null,
+        [FromQuery] bool isAsc = true)
+    {
+        var result = await _newsService.GetAllNewsPaging(page, size, filter, sortBy, isAsc);
+        return new ApiSuccessResult<IPaginate<NewsResponse>>(result);
+    }
+
+    [HttpDelete(ApiEndPointConstant.News.DeleteImage)]
+    [ProducesResponseType(typeof(ApiSuccessResult<NewsResponse>), StatusCodes.Status200OK)]
+    [CustomAuthorize(ERoleEnum.Admin)]
+    public async Task<ApiResult<NewsResponse>> DeleteNewsAsync([Required] Guid id,
+        [FromBody] DeleteImageNewsRequest request)
+    {
+        var result = await _newsService.DeleteNewsAsync(id, request);
+        return new ApiSuccessResult<NewsResponse>(result);
     }
 }

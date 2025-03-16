@@ -12,6 +12,8 @@ using OrbitMap.API.Utils;
 using OrbitMap.Domain.Configurations;
 using OrbitMap.Domain.Entities;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Domain.Utils;
 using OrbitMap.Repository.Interfaces;
@@ -350,5 +352,28 @@ public class UserService : BaseService<UserService>, IUserService
         if (!isSuccess)
             throw new Exception("Xóa người dùng thất bại");
         return true;
+    }
+
+    public async Task<IPaginate<MemberDto>> GetUsers(int page, int size, MemberFilter? filter, string? sortBy,
+        bool isAsc)
+    {
+        var members = await _unitOfWork.GetRepository<Member>().GetPagingListAsync(
+            selector: x => new MemberDto()
+            {
+                Id = x.Id,
+                Username = x.Username,
+                PhoneNumber = x.PhoneNumber,
+                AvatarUrl = x.AvatarUrl,
+                Birthday = x.Birthday,
+                isPremium = x.IsPremium,
+                DisplayName = x.DisplayName,
+            },
+            filter: filter,
+            page: page,
+            size: size,
+            sortBy: sortBy,
+            isAsc: isAsc
+        );
+        return members;
     }
 }

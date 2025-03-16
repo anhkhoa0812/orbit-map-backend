@@ -1,141 +1,193 @@
 using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using OrbitMap.Domain.Filter;
 using OrbitMap.Domain.Paginate;
 using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Repository.Interfaces;
 
 namespace OrbitMap.Repository;
 
-public class GenericRepository<T> : IGenericRepository<T> where T: class
+public class GenericRepository<T> : IGenericRepository<T> where T : class
 {
     protected readonly DbContext _dbContext;
-	protected readonly DbSet<T> _dbSet;
+    protected readonly DbSet<T> _dbSet;
 
-	public GenericRepository(DbContext context)
-	{
-		_dbContext = context;
-		_dbSet = context.Set<T>();
-	}
+    public GenericRepository(DbContext context)
+    {
+        _dbContext = context;
+        _dbSet = context.Set<T>();
+    }
 
-	public void Dispose()
-	{
-		_dbContext?.Dispose();
-	}
+    public void Dispose()
+    {
+        _dbContext?.Dispose();
+    }
 
-	#region Get
+    #region Get
 
-	public virtual async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
-	{
-		IQueryable<T> query = _dbSet;
-		if (include != null) query = include(query);
+    public virtual async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+    {
+        IQueryable<T> query = _dbSet;
+        if (include != null) query = include(query);
 
-		if (predicate != null) query = query.Where(predicate);
+        if (predicate != null) query = query.Where(predicate);
 
-		if (orderBy != null) return await orderBy(query).AsNoTracking().FirstOrDefaultAsync();
+        if (orderBy != null) return await orderBy(query).AsNoTracking().FirstOrDefaultAsync();
 
-		return await query.AsNoTracking().FirstOrDefaultAsync();
-	}
+        return await query.AsNoTracking().FirstOrDefaultAsync();
+    }
 
-	public virtual async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<T, TResult>> selector, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-		Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
-	{
-		IQueryable<T> query = _dbSet;
-		if (include != null) query = include(query);
+    public virtual async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<T, TResult>> selector,
+        Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+    {
+        IQueryable<T> query = _dbSet;
+        if (include != null) query = include(query);
 
-		if (predicate != null) query = query.Where(predicate);
+        if (predicate != null) query = query.Where(predicate);
 
-		if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).FirstOrDefaultAsync();
+        if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).FirstOrDefaultAsync();
 
-		return await query.AsNoTracking().Select(selector).FirstOrDefaultAsync();
-	}
+        return await query.AsNoTracking().Select(selector).FirstOrDefaultAsync();
+    }
 
-	public virtual async Task<ICollection<T>> GetListAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
-	{
-		IQueryable<T> query = _dbSet;
+    public virtual async Task<ICollection<T>> GetListAsync(Expression<Func<T, bool>> predicate = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+    {
+        IQueryable<T> query = _dbSet;
 
-		if (include != null) query = include(query);
+        if (include != null) query = include(query);
 
-		if (predicate != null) query = query.Where(predicate);
+        if (predicate != null) query = query.Where(predicate);
 
-		if (orderBy != null) return await orderBy(query).AsNoTracking().ToListAsync();
+        if (orderBy != null) return await orderBy(query).AsNoTracking().ToListAsync();
 
-		return await query.AsNoTracking().ToListAsync();
-	}
+        return await query.AsNoTracking().ToListAsync();
+    }
 
-	public virtual async Task<ICollection<TResult>> GetListAsync<TResult>(Expression<Func<T, TResult>> selector, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
-	{
-		IQueryable<T> query = _dbSet;
+    public virtual async Task<ICollection<TResult>> GetListAsync<TResult>(Expression<Func<T, TResult>> selector,
+        Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+    {
+        IQueryable<T> query = _dbSet;
 
-		if (include != null) query = include(query);
+        if (include != null) query = include(query);
 
-		if (predicate != null) query = query.Where(predicate);
+        if (predicate != null) query = query.Where(predicate);
 
-		if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).ToListAsync();
+        if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).ToListAsync();
 
-		return await query.Select(selector).ToListAsync();
-	}
+        return await query.Select(selector).ToListAsync();
+    }
 
-	public Task<IPaginate<T>> GetPagingListAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1,
-		int size = 10)
-	{
-		IQueryable<T> query = _dbSet;
-		if(include != null) query = include(query);
-		if(predicate != null) query = query.Where(predicate);
-		if (orderBy != null) return orderBy(query).ToPaginateAsync(page, size, 1);
-		return query.AsNoTracking().ToPaginateAsync(page, size, 1);
-	}
+    public Task<IPaginate<T>> GetPagingListAsync(Expression<Func<T, bool>> predicate = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1,
+        int size = 10)
+    {
+        IQueryable<T> query = _dbSet;
+        if (include != null) query = include(query);
+        if (predicate != null) query = query.Where(predicate);
+        if (orderBy != null) return orderBy(query).ToPaginateAsync(page, size, 1);
+        return query.AsNoTracking().ToPaginateAsync(page, size, 1);
+    }
 
-	public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-		Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1, int size = 10)
-	{
-		IQueryable<T> query = _dbSet;
-		if (include != null) query = include(query);
-		if(predicate != null) query = query.Where(predicate);
-		if (orderBy != null) return orderBy(query).Select(selector).ToPaginateAsync(page, size, 1);
-		return query.AsNoTracking().Select(selector).ToPaginateAsync(page, size, 1);
-	}
+    public async Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector,
+        IFilter<T> filter, Expression<Func<T, bool>> predicate = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1, int size = 10,
+        string sortBy = null, bool isAsc = true)
+    {
+        IQueryable<T> query = _dbSet;
 
-	#endregion
+        if (filter != null)
+        {
+            var filterExpression = filter.ToExpression();
+            query = query.Where(filterExpression);
+        }
 
-	#region Insert
+        if (predicate != null) query = query.Where(predicate);
+        if (include != null) query = include(query);
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySort(query, sortBy, isAsc);
+        }
+        else if (orderBy != null)
+        {
+            query = orderBy(query);
+        }
 
-	public async Task InsertAsync(T entity)
-	{
-		if (entity == null) return;
-		await _dbSet.AddAsync(entity);
-	}
+        return await query.AsNoTracking().Select(selector).ToPaginateAsync(page, size, 1);
+    }
 
-	public async Task InsertRangeAsync(IEnumerable<T> entities)
-	{
-		await _dbSet.AddRangeAsync(entities);
-	}
+    private IQueryable<T> ApplySort(IQueryable<T> query, string sortBy, bool isAsc)
+    {
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property =
+            typeof(T).GetProperty(sortBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+        if (property == null)
+        {
+            throw new ArgumentException($"Property '{sortBy}' not found on type {typeof(T).Name}");
+        }
 
-	#endregion
+        var propertyAccess = Expression.Property(parameter, property);
+        var lambda = Expression.Lambda(propertyAccess, parameter);
 
-	#region Update
-	public void UpdateAsync(T entity)
-	{
-		_dbSet.Update(entity);
-	}
+        string methodName = isAsc ? "OrderBy" : "OrderByDescending";
 
-	public void UpdateRange(IEnumerable<T> entities)
-	{
-		_dbSet.UpdateRange(entities);
-	}
-	#endregion
-	
-	#region  Delete
-	public void DeleteAsync(T entity)
-	{
-		_dbSet.Remove(entity);
-	}
+        var resultExpression = Expression.Call(typeof(Queryable), methodName,
+            new Type[] { typeof(T), propertyAccess.Type },
+            query.Expression, Expression.Quote(lambda));
+        return query.Provider.CreateQuery<T>(resultExpression);
+    }
 
-	public void DeleteRangeAsync(IEnumerable<T> entities)
-	{
-		_dbSet.RemoveRange(entities);
-	}
+    #endregion
 
-	#endregion
-	
+    #region Insert
+
+    public async Task InsertAsync(T entity)
+    {
+        if (entity == null) return;
+        await _dbSet.AddAsync(entity);
+    }
+
+    public async Task InsertRangeAsync(IEnumerable<T> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
+    }
+
+    #endregion
+
+    #region Update
+
+    public void UpdateAsync(T entity)
+    {
+        _dbSet.Update(entity);
+    }
+
+    public void UpdateRange(IEnumerable<T> entities)
+    {
+        _dbSet.UpdateRange(entities);
+    }
+
+    #endregion
+
+    #region Delete
+
+    public void DeleteAsync(T entity)
+    {
+        _dbSet.Remove(entity);
+    }
+
+    public void DeleteRangeAsync(IEnumerable<T> entities)
+    {
+        _dbSet.RemoveRange(entities);
+    }
+
+    #endregion
 }

@@ -65,6 +65,8 @@ public static class ApiEndPointConstant
         public const string NewsEndpoint = ApiEndpoint + "/news";
         public const string NewsWithId = NewsEndpoint + "/{id}";
         public const string NewsReaction = NewsEndpoint + "/reaction";
+        public const string NewsPagination = NewsEndpoint + "/pagination";
+        public const string DeleteImage = NewsWithId + "/image";
     }
 
     public static class Business
@@ -77,5 +79,11 @@ public static class ApiEndPointConstant
     public static class TravelPlan
     {
         public const string TravelPlanEndpoint = ApiEndpoint + "/travel-plans";
+    }
+
+    public static class Dashboard
+    {
+        public const string DashboardEndpoint = ApiEndpoint + "/dashboard";
+        public const string DashboardByDay = DashboardEndpoint + "/day";
     }
 }

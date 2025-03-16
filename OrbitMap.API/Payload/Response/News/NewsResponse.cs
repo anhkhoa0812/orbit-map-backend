@@ -11,7 +11,11 @@ public class NewsResponse
     public string BusinessName { get; set; }
     public string BusinessAddress { get; set; }
     public string BusinessImage { get; set; }
+    public string? BannerImage { get; set; }
     public int UsefulReactionCount { get; set; }
     public int UselessReactionCount { get; set; }
     public ENewsType Type { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? LastModifiedDate { get; set; }
+    public DateTime ExpirationDate { get; set; }
 }

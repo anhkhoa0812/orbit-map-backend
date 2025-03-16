@@ -10,6 +10,8 @@ using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
 using OrbitMap.API.Validators;
 using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Domain.Utils;
 using ILogger = Serilog.ILogger;
 
@@ -79,5 +81,15 @@ public class UserController : BaseController<UserController>
         var username = User.GetUsername();
         var result = await _userService.DeleteUser(username, request);
         return new ApiSuccessResult<bool>(result);
+    }
+
+    [CustomAuthorize(ERoleEnum.Admin)]
+    [HttpGet(ApiEndPointConstant.User.UserEndpoint)]
+    [ProducesResponseType(typeof(ApiSuccessResult<IPaginate<MemberDto>>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<IPaginate<MemberDto>>> GetUsers([FromQuery] int page = 1, [FromQuery] int size = 30,
+        [FromQuery] MemberFilter filter = null, [FromQuery] string sortBy = null, [FromQuery] bool isAsc = true)
+    {
+        var result = await _userService.GetUsers(page, size, filter, sortBy, isAsc);
+        return new ApiSuccessResult<IPaginate<MemberDto>>(result);
     }
 }

@@ -1,10 +1,11 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
+using OrbitMap.Domain.Filter;
 using OrbitMap.Domain.Paginate.Interfaces;
 
 namespace OrbitMap.Repository.Interfaces;
 
-public interface IGenericRepository<T> : IDisposable where T: class
+public interface IGenericRepository<T> : IDisposable where T : class
 {
     #region Get
 
@@ -39,11 +40,15 @@ public interface IGenericRepository<T> : IDisposable where T: class
 
     Task<IPaginate<TResult>> GetPagingListAsync<TResult>(
         Expression<Func<T, TResult>> selector,
+        IFilter<T> filter = null,
         Expression<Func<T, bool>> predicate = null,
         Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
         int page = 1,
-        int size = 10);
+        int size = 10,
+        string sortBy = null,
+        bool isAsc = true
+    );
 
     #endregion
 
@@ -64,7 +69,9 @@ public interface IGenericRepository<T> : IDisposable where T: class
     #endregion
 
     #region Delete
+
     void DeleteAsync(T entity);
     void DeleteRangeAsync(IEnumerable<T> entities);
+
     #endregion
 }

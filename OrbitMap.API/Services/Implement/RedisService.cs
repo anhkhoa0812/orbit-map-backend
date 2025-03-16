@@ -6,10 +6,12 @@ namespace OrbitMap.API.Services.Implement;
 public class RedisService : IRedisService
 {
     private readonly IDatabase _db;
+    private readonly IConnectionMultiplexer _redisConnection;
 
     public RedisService(IConnectionMultiplexer redis)
     {
         _db = redis.GetDatabase();
+        _redisConnection = redis;
     }
 
     public async Task<string> GetStringAsync(string key)
@@ -20,6 +22,45 @@ public class RedisService : IRedisService
     public async Task<RedisValue[]> GetStringListAsync(RedisKey[] keys)
     {
         return await _db.StringGetAsync(keys);
+    }
+
+    public async Task<List<string>> GetListByPatternAsync(string pattern)
+    {
+        RedisResult result = await _db.ScriptEvaluateAsync(
+            "return redis.call('keys', ARGV[1])",
+            keys: null,
+            values: new RedisValue[] { pattern },
+            flags: CommandFlags.None
+        );
+
+        // Cast the result to a RedisResult array.
+        RedisResult[] keys = (RedisResult[])result;
+
+        var resultList = new List<string>();
+        if (keys == null || keys.Length == 0)
+            return resultList;
+
+        // Retrieve list items for each key found.
+        foreach (var key in keys)
+        {
+            var listItems = await _db.ListRangeAsync(key.ToString());
+            resultList.AddRange(listItems.Select(x => x.ToString()));
+        }
+
+        return resultList;
+    }
+
+    public async Task<List<string>> GetKeysByPatternAsync(string pattern)
+    {
+        var endpoints = _redisConnection.GetEndPoints();
+        if (!endpoints.Any())
+        {
+            throw new Exception("No endpoints found in the connection multiplexer.");
+        }
+
+        var server = _redisConnection.GetServer(endpoints.First());
+        var keys = server.Keys(pattern: pattern);
+        return keys.Select(x => x.ToString()).ToList();
     }
 
     public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)

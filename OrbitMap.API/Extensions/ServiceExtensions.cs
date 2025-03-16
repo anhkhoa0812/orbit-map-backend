@@ -30,6 +30,7 @@ public static class ServiceExtensions
         services.AddScoped<IOverseaService, OverseaService>();
         services.AddScoped<IVietMapService, VietMapService>();
         services.AddScoped<ITravelPlanService, TravelPlanService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
 

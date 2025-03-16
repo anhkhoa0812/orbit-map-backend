@@ -7,6 +7,9 @@ public interface IRedisService
     Task<string> GetStringAsync(string key);
 
     Task<RedisValue[]> GetStringListAsync(RedisKey[] keys);
+
+    Task<List<string>> GetListByPatternAsync(string pattern);
+    Task<List<string>> GetKeysByPatternAsync(string pattern);
     Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null);
     Task<bool> KeyExistsAsync(string key);
     Task<bool> RemoveKeyAsync(string key);
