@@ -271,4 +271,62 @@ public class NewsService : BaseService<NewsService>, INewsService
             throw new Exception("Failed to delete image");
         return _mapper.Map<NewsResponse>(news);
     }
+
+    public async Task<NewsResponse> GetNewsByIdAsync(Guid id)
+    {
+        var news = await _unitOfWork.GetRepository<News>().SingleOrDefaultAsync(
+            predicate: x => x.Id == id
+        );
+        if (news == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy News");
+        }
+
+        return _mapper.Map<NewsResponse>(news);
+    }
+
+    public async Task<NewsResponse> UpdateNewsAsync(Guid newsId, UpdateNewsRequest request)
+    {
+        var news = await _unitOfWork.GetRepository<News>().SingleOrDefaultAsync(
+            predicate: x => x.Id == newsId
+        );
+        if (news == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy News");
+        }
+
+        var newsMapped = _mapper.Map(request, news);
+        if (newsMapped.Type == ENewsType.HeaderBanner &&
+            newsMapped.BannerImage == null && request.BusinessImageFile == null)
+        {
+            throw new BadHttpRequestException("Hình ảnh Banner không được để trống");
+        }
+
+        if (request.BannerImageFile != null)
+        {
+            var uploadBannerImageResult = await _uploadService.UploadImageAsync(request.BannerImageFile);
+            newsMapped.BannerImage = uploadBannerImageResult;
+        }
+
+        if (request.BusinessImageFile != null)
+        {
+            var uploadBusinessImageResult = await _uploadService.UploadImageAsync(request.BusinessImageFile);
+            newsMapped.BusinessImage = uploadBusinessImageResult;
+        }
+
+        if (request.NewsImageFiles != null)
+        {
+            foreach (var newsImage in request.NewsImageFiles)
+            {
+                var uploadResult = await _uploadService.UploadImageAsync(newsImage);
+                newsMapped.ImageUrls!.Add(uploadResult);
+            }
+        }
+
+        _unitOfWork.GetRepository<News>().UpdateAsync(newsMapped);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (!isSuccess)
+            throw new Exception("Failed to update news");
+        return _mapper.Map<NewsResponse>(newsMapped);
+    }
 }

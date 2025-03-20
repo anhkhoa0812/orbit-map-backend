@@ -6,6 +6,10 @@ using OrbitMap.API.Payload.Response.Result;
 using OrbitMap.API.Payload.Response.TravelPlan;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.API.Utils;
+using OrbitMap.API.Validators;
+using OrbitMap.Domain.Enums;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Domain.Utils;
 using ILogger = Serilog.ILogger;
 
@@ -41,5 +45,33 @@ public class TravelPlanController : BaseController<TravelPlanController>
         var result = await _travelPlanService.GetTravelPlanAsync(locationName);
         _logger.Information($"END: {nameof(GetTravelPlan)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<List<TravelPlanResponse>?>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.TravelPlan.TravelPlanPaging)]
+    [ProducesResponseType(typeof(ApiSuccessResult<IPaginate<TravelPlanResponse>?>), StatusCodes.Status200OK)]
+    [CustomAuthorize(ERoleEnum.Admin, ERoleEnum.Member)]
+    public async Task<ApiResult<IPaginate<TravelPlanResponse>?>> GetAllTravelPlanPaging(
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 30,
+        [FromQuery] TravelPlanFilter? filter = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] bool isAsc = true
+    )
+    {
+        _logger.Information($"BEGIN: {nameof(GetAllTravelPlanPaging)} - {TimeUtil.GetCurrentSEATime()}");
+        var result = await _travelPlanService.GetAllTravelPlanPaging(page, size, filter, sortBy, isAsc);
+        _logger.Information($"END: {nameof(GetAllTravelPlanPaging)} - {TimeUtil.GetCurrentSEATime()}");
+        return new ApiSuccessResult<IPaginate<TravelPlanResponse>?>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.TravelPlan.TravelPlanById)]
+    [ProducesResponseType(typeof(ApiSuccessResult<TravelPlanResponse>), StatusCodes.Status200OK)]
+    [CustomAuthorize(ERoleEnum.Admin, ERoleEnum.Member)]
+    public async Task<ApiResult<TravelPlanResponse>> GetTravelPlanById(Guid id)
+    {
+        _logger.Information($"BEGIN: {nameof(GetTravelPlanById)} - {TimeUtil.GetCurrentSEATime()}");
+        var result = await _travelPlanService.GetTravelPlanByIdAsync(id);
+        _logger.Information($"END: {nameof(GetTravelPlanById)} - {TimeUtil.GetCurrentSEATime()}");
+        return new ApiSuccessResult<TravelPlanResponse>(result);
     }
 }

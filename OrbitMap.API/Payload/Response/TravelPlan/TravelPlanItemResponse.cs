@@ -4,7 +4,7 @@ namespace OrbitMap.API.Payload.Response.TravelPlan;
 
 public class TravelPlanItemResponse
 {
-    public string Id { get; set; }
+    public Guid Id { get; set; }
     public ETravelPlanItemTime Time { get; set; }
     public string Name { get; set; }
     public string Address { get; set; }

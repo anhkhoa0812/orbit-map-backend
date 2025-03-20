@@ -79,6 +79,8 @@ public static class ApiEndPointConstant
     public static class TravelPlan
     {
         public const string TravelPlanEndpoint = ApiEndpoint + "/travel-plans";
+        public const string TravelPlanById = TravelPlanEndpoint + "/{id}";
+        public const string TravelPlanPaging = TravelPlanEndpoint + "/paging";
     }
 
     public static class Dashboard

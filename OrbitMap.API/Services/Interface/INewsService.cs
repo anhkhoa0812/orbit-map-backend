@@ -15,4 +15,8 @@ public interface INewsService
     Task<IPaginate<NewsResponse>> GetAllNewsPaging(int page, int size, NewsFilter? filter, string? sortBy, bool isAsc);
 
     Task<NewsResponse> DeleteNewsAsync(Guid newsId, DeleteImageNewsRequest request);
+
+    Task<NewsResponse> GetNewsByIdAsync(Guid id);
+
+    Task<NewsResponse> UpdateNewsAsync(Guid newsId, UpdateNewsRequest request);
 }

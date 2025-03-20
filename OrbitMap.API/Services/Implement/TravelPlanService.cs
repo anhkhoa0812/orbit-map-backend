@@ -4,6 +4,8 @@ using OrbitMap.API.Payload.Request.TravelPlan;
 using OrbitMap.API.Payload.Response.TravelPlan;
 using OrbitMap.API.Services.Interface;
 using OrbitMap.Domain.Entities;
+using OrbitMap.Domain.Filter.FilterModel;
+using OrbitMap.Domain.Paginate.Interfaces;
 using OrbitMap.Domain.Persistent;
 using OrbitMap.Repository.Interfaces;
 using ILogger = Serilog.ILogger;
@@ -92,5 +94,55 @@ public class TravelPlanService : BaseService<TravelPlanService>, ITravelPlanServ
         }
 
         return null;
+    }
+
+    public async Task<IPaginate<TravelPlanResponse>?> GetAllTravelPlanPaging(int page, int size,
+        TravelPlanFilter? filter,
+        string? sortBy, bool isAsc)
+    {
+        var travelPlan = await _unitOfWork.GetRepository<TravelPlan>().GetPagingListAsync(
+            selector: x => new TravelPlanResponse
+            {
+                Id = x.Id,
+                Type = x.Type,
+                TravelPlanDays = x.TravelPlanDays.OrderBy(x => x.Day).Select(day => new TravelPlanDayResponse
+                {
+                    Id = day.Id,
+                    Day = day.Day,
+                    TravelPlanItems = day.TravelPlanItems.OrderBy(item => item.Time).Select(item =>
+                        new TravelPlanItemResponse
+                        {
+                            Id = item.Id,
+                            Time = item.Time,
+                            Name = item.Name,
+                            Address = item.Address,
+                            ImageUrl = item.ImageUrl
+                        }).ToList()
+                }).ToList()
+            },
+            page: page,
+            size: size,
+            filter: filter,
+            sortBy: sortBy,
+            isAsc: isAsc
+        );
+        return travelPlan;
+    }
+
+    public async Task<TravelPlanResponse> GetTravelPlanByIdAsync(Guid id)
+    {
+        var travelPlan = await _unitOfWork.GetRepository<TravelPlan>().SingleOrDefaultAsync(
+            predicate: x => x.Id.Equals(id),
+            include: x => x.Include(x => x.Location)
+                .Include(x => x.TravelPlanDays.OrderBy(x => x.Day))
+                .ThenInclude(x => x.TravelPlanItems.OrderBy(x => x.Time))
+        );
+        if (travelPlan == null)
+        {
+            throw new BadHttpRequestException("Không tìm thấy kế hoạch du lịch");
+        }
+
+        var result = _mapper.Map<TravelPlanResponse>(travelPlan);
+        return result;
     }
 }

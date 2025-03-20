@@ -11,6 +11,7 @@ using OrbitMap.Domain.Enums;
 using OrbitMap.Domain.Filter.FilterModel;
 using OrbitMap.Domain.Paginate;
 using OrbitMap.Domain.Paginate.Interfaces;
+using OrbitMap.Domain.Utils;
 using ILogger = Serilog.ILogger;
 
 namespace OrbitMap.API.Controllers;
@@ -71,6 +72,28 @@ public class NewsController : BaseController<NewsController>
         [FromBody] DeleteImageNewsRequest request)
     {
         var result = await _newsService.DeleteNewsAsync(id, request);
+        return new ApiSuccessResult<NewsResponse>(result);
+    }
+
+    [HttpGet(ApiEndPointConstant.News.NewsWithId)]
+    [ProducesResponseType(typeof(ApiSuccessResult<NewsResponse>), StatusCodes.Status200OK)]
+    public async Task<ApiResult<NewsResponse>> GetNewsByIdAsync([Required] Guid id)
+    {
+        _logger.Information($"BEGIN: {nameof(GetNewsByIdAsync)} - {TimeUtil.GetCurrentSEATime()}");
+        var result = await _newsService.GetNewsByIdAsync(id);
+        _logger.Information($"END: {nameof(GetNewsByIdAsync)} - {TimeUtil.GetCurrentSEATime()}");
+        return new ApiSuccessResult<NewsResponse>(result);
+    }
+
+
+    [HttpPatch(ApiEndPointConstant.News.NewsWithId)]
+    [ProducesResponseType(typeof(ApiSuccessResult<NewsResponse>), StatusCodes.Status200OK)]
+    [CustomAuthorize(ERoleEnum.Admin)]
+    public async Task<ApiResult<NewsResponse>> UpdateNewsAsync([Required] Guid id, [FromForm] UpdateNewsRequest request)
+    {
+        _logger.Information($"BEGIN: {nameof(UpdateNewsAsync)} - {TimeUtil.GetCurrentSEATime()}");
+        var result = await _newsService.UpdateNewsAsync(id, request);
+        _logger.Information($"END: {nameof(UpdateNewsAsync)} - {TimeUtil.GetCurrentSEATime()}");
         return new ApiSuccessResult<NewsResponse>(result);
     }
 }
