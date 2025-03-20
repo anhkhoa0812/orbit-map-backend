@@ -1,4 +1,5 @@
 using Serilog;
+
 namespace OrbitMap.API.Logger;
 
 public static class SeriLogger
@@ -8,7 +9,6 @@ public static class SeriLogger
         {
             var application = context.HostingEnvironment.ApplicationName?.ToLower().Replace(".", "-");
             var environmentName = context.HostingEnvironment.EnvironmentName ?? "Development";
-
             configuration
                 .WriteTo.Debug()
                 .WriteTo.Console(outputTemplate:
